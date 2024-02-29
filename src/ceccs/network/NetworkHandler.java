@@ -48,6 +48,7 @@ public class NetworkHandler {
 
         this.clientSocket = new DatagramSocket();
         this.clientSocket.setSoTimeout(pingInterval * 2);
+        this.clientSocket.setTrafficClass(0x10);
 
         this.game = game;
 
@@ -101,12 +102,28 @@ public class NetworkHandler {
                 }
 
                 switch (op) {
-                    case SERVER_IDENTIFY_OK -> Client.registerPacket = RegisterPacket.fromJSON(networkPacket.data);
+                    case SERVER_IDENTIFY_OK -> {
+                        Client.registerPacket = RegisterPacket.fromJSON(networkPacket.data);
+                        System.out.println("successfully connected to server");
+                    }
                     case SERVER_PONG -> ping = System.nanoTime() - lastPing;
                     case SERVER_GAME_STATE -> game.updateFromGameData(networkPacket.data);
                     case SERVER_TERMINATE -> {
                         Platform.exit();
                         System.exit(0);
+                    }
+                    case CLIENT_UNIDENTIFIED_ERROR -> {
+                        System.err.println("client unidentified error received: server restarted?");
+
+                        Client.registerPacket = null;
+
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException exception) {
+                            System.err.println("failed to stall thread: " + exception);
+                        }
+
+                        identify();
                     }
                     default -> System.out.println("unhandled op code: " + op);
                 }
@@ -137,6 +154,12 @@ public class NetworkHandler {
     }
 
     private void handleWritePacket(OP_CODES op, JSONObject data) {
+        if (op != OP_CODES.CLIENT_IDENTIFY && Client.registerPacket == null) {
+            System.err.println("register packet is null");
+
+            return;
+        }
+
         NetworkPacket networkPacket = new NetworkPacket(op, data);
 
         try {

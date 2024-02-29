@@ -2,6 +2,7 @@ package ceccs.game.objects;
 
 import ceccs.Client;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.scene.input.ScrollEvent;
 
 public class Camera {
 
@@ -20,12 +21,19 @@ public class Camera {
     private double targetCameraScale;
     private double cameraScale;
 
+    private double scrollScale;
+
+    private double cacheMass;
+
     private double vC;
     private double aC;
 
     public Camera() {
         this.targetCameraScale = calculateScale(10);
         this.cameraScale = targetCameraScale;
+
+        this.scrollScale = 1;
+        this.cacheMass = 0;
 
         this.vC = 0;
         this.aC = 0.0008;
@@ -37,12 +45,18 @@ public class Camera {
     }
 
     public void setMass(ReadOnlyDoubleProperty mass) {
-        mass.addListener(
-                (observable, oldValue, newValue) ->
-                        targetCameraScale = calculateScale(newValue.doubleValue())
-        );
+        mass.addListener((observable, oldValue, newValue) -> {
+            cacheMass = newValue.doubleValue();
+            targetCameraScale = calculateScale(newValue.doubleValue());
+        });
 
         this.targetCameraScale = calculateScale(mass.doubleValue());
+        this.cacheMass = mass.doubleValue();
+    }
+
+    public void updateScrollWheel(ScrollEvent event) {
+        this.scrollScale = Math.max(Math.min(scrollScale - event.getDeltaX() / 50, 4), 1);
+        this.targetCameraScale = calculateScale(cacheMass);
     }
 
     public double calculateScale(double mass) {
@@ -52,7 +66,7 @@ public class Camera {
 
         double screenFactor = A / Math.pow(mass, n);
 
-        return (Math.pow(Client.screenWidth, 2) * Math.PI) / (screenFactor * mass);
+        return (Math.pow(Client.screenWidth, 2) * Math.PI) / (screenFactor * mass) * scrollScale;
     }
 
     public double getCameraScale() {
@@ -85,12 +99,12 @@ public class Camera {
 //        }
 
         if (cameraScale != targetCameraScale) {
-            aC = cameraScale > targetCameraScale ? -Math.abs(aC) : Math.abs(aC);
+            aC = (cameraScale > targetCameraScale ? -Math.abs(aC) : Math.abs(aC)) * scrollScale;
             vC += aC * 1 / (cameraScale / 300);
 
             cameraScale = aC < 0
-                    ? Math.max(targetCameraScale, cameraScale + vC)
-                    : Math.min(targetCameraScale, cameraScale + vC);
+                ? Math.max(targetCameraScale, cameraScale + vC)
+                : Math.min(targetCameraScale, cameraScale + vC);
         } else if (Math.abs(vC) > 0) {
             vC = 0;
         }

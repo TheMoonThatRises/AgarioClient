@@ -298,8 +298,8 @@ public class Player {
 
                 if (playerBlob.uuid != checkBlob.uuid) {
                     if (
-                            playerBlob.cooldowns.merge < time &&
-                                    checkBlob.cooldowns.merge < time
+                        playerBlob.cooldowns.merge < time &&
+                        checkBlob.cooldowns.merge < time
                     ) {
                         if (checkCollision(playerBlob, checkBlob)) {
                             playerBlob.mass.set(playerBlob.mass.get() + checkBlob.mass.get());

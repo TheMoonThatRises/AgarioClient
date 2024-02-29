@@ -41,7 +41,21 @@ public class Game extends Pane {
         this.camera = new Camera();
 
         Client.heartbeat.addRoutine(now -> {
+            if (Client.registerPacket == null) {
+                if (!players.isEmpty()) {
+                    // TODO: overlay and camera are not updated
+                    players.values().forEach(Player::removeFromPane);
+                    players.clear();
+                }
+
+                return;
+            }
+
             Player thisPlayer = getSelfPlayer();
+
+            if (thisPlayer == null) {
+                return;
+            }
 
             camera.smoothCameraTick();
 
@@ -107,10 +121,14 @@ public class Game extends Pane {
         for (int i = 0; i < foodArray.length(); ++i) {
             Food food = Food.fromBlob(Blob.fromJSON(foodArray.getJSONObject(i), this, foods));
 
-            if (foods.containsKey(food.uuid)) {
-                foods.get(food.uuid).updatePhysics(food);
-            } else {
-                foods.put(food.uuid, food);
+            try {
+                if (foods.containsKey(food.uuid)) {
+                    foods.get(food.uuid).updatePhysics(food);
+                } else {
+                    foods.put(food.uuid, food);
+                }
+            } catch (NullPointerException exception) {
+                System.err.println("concurrent issue: " + exception);
             }
         }
 
@@ -120,10 +138,14 @@ public class Game extends Pane {
         for (int i = 0; i < pelletArray.length(); ++i) {
             Pellet pellet = Pellet.fromBlob(Blob.fromJSON(pelletArray.getJSONObject(i), this, pellets));
 
-            if (pellets.containsKey(pellet.uuid)) {
-                pellets.get(pellet.uuid).updatePhysics(pellet);
-            } else {
-                pellets.put(pellet.uuid, pellet);
+            try {
+                if (pellets.containsKey(pellet.uuid)) {
+                    pellets.get(pellet.uuid).updatePhysics(pellet);
+                } else {
+                    pellets.put(pellet.uuid, pellet);
+                }
+            } catch (NullPointerException exception) {
+                System.err.println("concurrent issue: " + exception);
             }
         }
 
@@ -133,10 +155,14 @@ public class Game extends Pane {
         for (int i = 0; i < virusArray.length(); ++i) {
             Virus virus = Virus.fromBlob(Blob.fromJSON(virusArray.getJSONObject(i), this, viruses));
 
-            if (viruses.containsKey(virus.uuid)) {
-                viruses.get(virus.uuid).updatePhysics(virus);
-            } else {
-                viruses.put(virus.uuid, virus);
+            try {
+                if (viruses.containsKey(virus.uuid)) {
+                    viruses.get(virus.uuid).updatePhysics(virus);
+                } else {
+                    viruses.put(virus.uuid, virus);
+                }
+            } catch (NullPointerException exception) {
+                System.err.println("concurrent issue: " + exception);
             }
         }
 
@@ -146,10 +172,14 @@ public class Game extends Pane {
         for (int i = 0; i < playerArray.length(); ++i) {
             Player player = Player.fromJSON(playerArray.getJSONObject(i), this);
 
-            if (players.containsKey(player.uuid)) {
-                players.get(player.uuid).updatePhysics(player);
-            } else {
-                players.put(player.uuid, player);
+            try {
+                if (players.containsKey(player.uuid)) {
+                    players.get(player.uuid).updatePhysics(player);
+                } else {
+                    players.put(player.uuid, player);
+                }
+            } catch (NullPointerException exception) {
+                System.err.println("concurrent issue: " + exception);
             }
         }
     }

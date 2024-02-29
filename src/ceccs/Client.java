@@ -95,8 +95,12 @@ public class Client extends Application {
 
         scene.setOnMouseMoved(event -> {
             networkHandler.writeMousePacket(event.getX(), event.getY());
-            game.getSelfPlayer().updateMouseEvent(event);
+
+            if (registerPacket != null && game.getSelfPlayer() != null) {
+                game.getSelfPlayer().updateMouseEvent(event);
+            }
         });
+        scene.setOnScroll(event -> game.camera.updateScrollWheel(event));
         scene.setOnKeyPressed(event -> networkHandler.writeKeyPacket(event.getCode().getCode(), true));
         scene.setOnKeyReleased(event -> networkHandler.writeKeyPacket(event.getCode().getCode(), false));
 
