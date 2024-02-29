@@ -14,9 +14,9 @@ public class PlayerConfigs {
     final static public double playerMouseAcc = 0.1;
 
     public static double calcVelocityModifier(double mass) {
-        double dv = 5 / 0.9;
+        double dv = 2 / 0.1;
         double n = Math.log(dv) / Math.log(10) / 3;
-        double A = 0.9 * Math.pow(10, 4 * n);
+        double A = 0.1 * Math.pow(10, 4 * n);
 
         return A / Math.pow(mass, n);
     }

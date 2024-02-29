@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static ceccs.game.configs.VirusConfigs.virusMass;
+
 public class Game extends Pane {
 
     final public Camera camera;
@@ -68,8 +70,9 @@ public class Game extends Pane {
             players.values().forEach(Player::animationTick);
 
             pellets.values().forEach(Pellet::toFront);
+            players.values().stream().filter(player -> player.massProperty().lessThan(virusMass).get()).forEach(Player::toFront);
             viruses.values().forEach(Virus::toFront);
-            players.values().forEach(Player::toFront);
+            players.values().stream().filter(player -> player.massProperty().greaterThanOrEqualTo(virusMass).get()).forEach(Player::toFront);
         });
     }
 

@@ -35,7 +35,11 @@ public class NetworkHandler {
 
     private long lastPing;
 
-    private double ping;
+    private static long ping;
+
+    static {
+        ping = 0;
+    }
 
     public NetworkHandler(String hostname, int port, Game game) throws SocketException {
         this.serverSocket = new InetSocketAddress(hostname, port);
@@ -48,7 +52,6 @@ public class NetworkHandler {
         this.game = game;
 
         this.lastPing = System.nanoTime();
-        this.ping = 0;
 
         this.pingTimer = new Timer("server_ping_thread");
 
@@ -99,7 +102,7 @@ public class NetworkHandler {
 
                 switch (op) {
                     case SERVER_IDENTIFY_OK -> Client.registerPacket = RegisterPacket.fromJSON(networkPacket.data);
-                    case SERVER_PONG -> ping = (System.nanoTime() - lastPing) / 1_000_000.0;
+                    case SERVER_PONG -> ping = System.nanoTime() - lastPing;
                     case SERVER_GAME_STATE -> game.updateFromGameData(networkPacket.data);
                     case SERVER_TERMINATE -> {
                         Platform.exit();
@@ -168,7 +171,7 @@ public class NetworkHandler {
         handleWritePacket(OP_CODES.CLIENT_KEYBOARD_UPDATE, new KeyPacket(keycode, pressed).toJSON());
     }
 
-    public double getPing() {
+    public static long getPing() {
         return ping;
     }
 

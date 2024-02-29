@@ -16,7 +16,7 @@ public class Overlay extends GridPane {
     Label mass;
     Label ping;
 
-    public Overlay(NetworkHandler networkHandler, ReadOnlyDoubleProperty massProperty) {
+    public Overlay(ReadOnlyDoubleProperty massProperty) {
         this.fps = new Label("fps:");
         this.mass = new Label("mass:");
         this.ping = new Label("ping:");
@@ -25,21 +25,21 @@ public class Overlay extends GridPane {
         this.mass.textProperty().bind(massProperty.asString("mass: %.2f"));
 
         Client.heartbeat.addRoutine(now -> {
-            long oldFrameTime = frameTimes[frameTimeIndex] ;
-            frameTimes[frameTimeIndex] = now ;
-            frameTimeIndex = (frameTimeIndex + 1) % frameTimes.length ;
+            long oldFrameTime = frameTimes[frameTimeIndex];
+            frameTimes[frameTimeIndex] = now;
+            frameTimeIndex = (frameTimeIndex + 1) % frameTimes.length;
             if (frameTimeIndex == 0) {
-                arrayFilled = true ;
+                arrayFilled = true;
             }
 
             if (arrayFilled) {
-                long elapsedNanos = now - oldFrameTime ;
-                long elapsedNanosPerFrame = elapsedNanos / frameTimes.length ;
-                double frameRate = 1_000_000_000.0 / elapsedNanosPerFrame ;
+                long elapsedNanos = now - oldFrameTime;
+                long elapsedNanosPerFrame = elapsedNanos / frameTimes.length;
+                double frameRate = 1_000_000_000.0 / elapsedNanosPerFrame;
                 fps.setText(String.format("fps: %.2f", frameRate));
             }
 
-            ping.setText(String.format("ping: %.2fms", networkHandler.getPing()));
+            ping.setText(String.format("ping: %.2fms", NetworkHandler.getPing() / 1_000_000.0));
         });
 
         super.add(this.fps, 0, 0);

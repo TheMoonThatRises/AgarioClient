@@ -19,7 +19,7 @@ public class Pellet extends Blob {
 
     public static Pellet fromBlob(Blob blob) {
         return new Pellet(
-                blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
+            blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
         );
     }
 
