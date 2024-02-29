@@ -6,13 +6,11 @@ import ceccs.game.panes.Overlay;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.RegisterPacket;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import org.json.JSONObject;
 
 public class Client extends Application {
 
@@ -76,7 +74,7 @@ public class Client extends Application {
 
         System.out.println("waiting for server population");
 
-        while (!game.players.containsKey(registerPacket.playerUUID)) {
+        while (!game.players.containsKey(registerPacket.playerUUID())) {
             Thread.sleep(500);
         }
 

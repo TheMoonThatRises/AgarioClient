@@ -11,11 +11,11 @@ public class Camera {
     private double targetX;
     private double targetY;
 
-    private double camXV;
-    private double camYV;
+    private final double camXV;
+    private final double camYV;
 
-    private double camPosAX;
-    private double camPosAY;
+    private final double camPosAX;
+    private final double camPosAY;
 
     private double targetCameraScale;
     private double cameraScale;

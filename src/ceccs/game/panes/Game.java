@@ -29,7 +29,7 @@ public class Game extends Pane {
 
         this.setPrefSize(Client.screenWidth, Client.screenHeight);
 
-        gridItems = new ArrayList<>();
+        this.gridItems = new ArrayList<>();
 
         this.foods = new ConcurrentHashMap<>();
         this.pellets = new ConcurrentHashMap<>();
@@ -43,10 +43,10 @@ public class Game extends Pane {
 
             camera.smoothCameraTick();
 
-            players.values().forEach(Player::updatePhysicsDataTick);
-            pellets.values().forEach(Pellet::updatePhysicsDataTick);
-            viruses.values().forEach(Virus::updatePhysicsDataTick);
-            foods.values().forEach(Food::updatePhysicsDataTick);
+            players.values().forEach(player -> player.updatePhysicsDataTick(now));
+            pellets.values().forEach(pellet -> pellet.updatePhysicsDataTick(now));
+            viruses.values().forEach(virus -> virus.updatePhysicsDataTick(now));
+            foods.values().forEach(food -> food.updatePhysicsDataTick(now));
 
             players.values().forEach(Player::positionTick);
             pellets.values().forEach(Pellet::positionTick);
@@ -76,16 +76,16 @@ public class Game extends Pane {
     public void load() {
         camera.setMass(this.getSelfPlayer().massProperty());
 
-        for (double x = 0; x <= Client.registerPacket.width; x += gridSpacing) {
-            GridItem line = new GridItem(x, 0, x, Client.registerPacket.height, this);
+        for (double x = 0; x <= Client.registerPacket.width(); x += gridSpacing) {
+            GridItem line = new GridItem(x, 0, x, Client.registerPacket.height(), this);
 
             gridItems.add(line);
 
             getChildren().add(line);
         }
 
-        for (double y = 0; y <= Client.registerPacket.height; y += gridSpacing) {
-            GridItem line = new GridItem(0, y, Client.registerPacket.width, y, this);
+        for (double y = 0; y <= Client.registerPacket.height(); y += gridSpacing) {
+            GridItem line = new GridItem(0, y, Client.registerPacket.width(), y, this);
 
             gridItems.add(line);
 
@@ -94,7 +94,7 @@ public class Game extends Pane {
     }
 
     public Player getSelfPlayer() {
-        return players.get(Client.registerPacket.playerUUID);
+        return players.get(Client.registerPacket.playerUUID());
     }
 
     public void updateFromGameData(JSONObject data) {

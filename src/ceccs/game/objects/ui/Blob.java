@@ -18,8 +18,6 @@ public class Blob extends Circle {
 
     final public UUID uuid;
 
-    protected long lastVisible;
-
     protected double x;
     protected double y;
     protected double vx;
@@ -37,6 +35,7 @@ public class Blob extends Circle {
     protected AbstractMap<UUID, ? extends Blob> parentArray;
 
     protected Blob physicsUpdate;
+    protected long lastPhysicsUpdate;
 
     public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentArray) {
         super(x, y, Math.sqrt(mass/Math.PI), fill);
@@ -67,7 +66,9 @@ public class Blob extends Circle {
         this.parentArray = parentArray;
 
         this.uuid = uuid;
-        this.lastVisible = 0;
+
+        this.physicsUpdate = null;
+        this.lastPhysicsUpdate = 0;
 
         setVisible(false);
 
@@ -92,7 +93,7 @@ public class Blob extends Circle {
     }
 
     public void removeFromArray() {
-        parentArray.remove(this);
+        parentArray.remove(uuid);
     }
 
     public void positionTick() {
@@ -109,16 +110,16 @@ public class Blob extends Circle {
         if (x - radius < 0) {
             x = radius;
             vx = 0;
-        } else if (x + radius > Client.registerPacket.width) {
-            x = Client.registerPacket.width - radius;
+        } else if (x + radius > Client.registerPacket.width()) {
+            x = Client.registerPacket.width() - radius;
             vx = 0;
         }
 
         if (y - radius < 0) {
             y = radius;
             vy = 0;
-        } else if (y + radius > Client.registerPacket.height) {
-            y = Client.registerPacket.height - radius;
+        } else if (y + radius > Client.registerPacket.height()) {
+            y = Client.registerPacket.height() - radius;
             vy = 0;
         }
     }
@@ -178,7 +179,7 @@ public class Blob extends Circle {
         this.y = y;
     }
 
-    public void updatePhysicsDataTick() {
+    public void updatePhysicsDataTick(long now) {
         if (physicsUpdate != null) {
             this.x = physicsUpdate.x;
             this.y = physicsUpdate.y;
@@ -189,6 +190,10 @@ public class Blob extends Circle {
             this.mass.set(physicsUpdate.mass.doubleValue());
 
             physicsUpdate = null;
+            lastPhysicsUpdate = now;
+        } else if (lastPhysicsUpdate + 10 < now) {
+            removeFromPane();
+            removeFromArray();
         }
     }
 

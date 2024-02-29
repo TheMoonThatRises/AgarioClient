@@ -4,7 +4,6 @@ import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.Game;
 import javafx.scene.paint.Paint;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 public class Food extends Blob {

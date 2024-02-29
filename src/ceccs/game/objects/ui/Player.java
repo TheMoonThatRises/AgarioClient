@@ -6,14 +6,19 @@ import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.collections.*;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Paint;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.utilities.Utilities.*;
@@ -132,7 +137,7 @@ public class Player {
             y += vy * velScale;
         }
 
-        public void updatePhysicsDataTick() {
+        public void updatePhysicsDataTick(long now) {
             this.maxVx = physicsUpdate.maxVx;
             this.maxVy = physicsUpdate.maxVy;
             this.hasSplitSpeedBoost = physicsUpdate.hasSplitSpeedBoost;
@@ -140,7 +145,7 @@ public class Player {
 
             cooldowns.updateCooldowns(physicsUpdate.cooldowns);
 
-            super.updatePhysicsDataTick();
+            super.updatePhysicsDataTick(now);
         }
 
         public void updatePhysics(PlayerBlob blob) {
@@ -171,6 +176,7 @@ public class Player {
     protected Game game;
 
     protected Player physicsUpdate;
+    protected long lastPhysicsUpdate;
 
     public Player(double x, double y, double vx, double vy, double mass, Paint fill, Game game, UUID uuid
     ) {
@@ -211,6 +217,7 @@ public class Player {
         this.keyEvents = new HashMap<>();
 
         this.game = game;
+        this.lastPhysicsUpdate = 0;
     }
 
     protected Player(Game game, UUID uuid, HashMap<UUID, PlayerBlob> playerBlobs) {
@@ -250,6 +257,7 @@ public class Player {
         this.keyEvents = new HashMap<>();
 
         this.game = game;
+        this.lastPhysicsUpdate = 0;
     }
 
     public void addToPane() {
@@ -365,17 +373,20 @@ public class Player {
         this.mouseEvent = mouseEvent;
     }
 
-    public void updatePhysicsDataTick() {
+    public void updatePhysicsDataTick(long now) {
         if (physicsUpdate != null) {
             physicsUpdate.playerBlobs.values().forEach(blob -> {
                 if (playerBlobs.containsKey(blob.uuid)) {
-                    playerBlobs.get(blob.uuid).updatePhysicsDataTick();
+                    playerBlobs.get(blob.uuid).updatePhysicsDataTick(now);
                 } else {
                     playerBlobs.put(blob.uuid, blob);
                 }
             });
 
             physicsUpdate = null;
+            lastPhysicsUpdate = now;
+        } else if (lastPhysicsUpdate + 10 < now) {
+            removeFromPane();
         }
     }
 

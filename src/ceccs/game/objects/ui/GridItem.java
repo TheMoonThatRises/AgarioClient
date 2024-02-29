@@ -3,7 +3,6 @@ package ceccs.game.objects.ui;
 import ceccs.Client;
 import ceccs.game.panes.Game;
 import javafx.scene.CacheHint;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 

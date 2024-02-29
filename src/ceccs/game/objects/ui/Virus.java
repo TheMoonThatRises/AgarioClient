@@ -2,10 +2,8 @@ package ceccs.game.objects.ui;
 
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.Game;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
-import java.util.AbstractMap;
 import java.util.UUID;
 
 public class Virus extends Blob {
