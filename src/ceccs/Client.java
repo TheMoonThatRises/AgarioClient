@@ -11,6 +11,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+
+import java.util.Scanner;
 
 public class Client extends Application {
 
@@ -44,8 +47,11 @@ public class Client extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // 127.0.0.1:2351
+        Pair<String, Integer> server = getServer();
+
         game = new Game();
-        networkHandler = new NetworkHandler("192.168.86.207", 2351, game);
+        networkHandler = new NetworkHandler(server.getKey(), server.getValue(), game);
 
         networkHandler.start();
         networkHandler.identify();
@@ -107,6 +113,31 @@ public class Client extends Application {
         heartbeat.start();
 
         System.out.println("loading scene");
+    }
+
+    private Pair<String, Integer> getServer() {
+        String serverIp = "";
+        Integer serverPort = null;
+
+        Scanner scanner = new Scanner(System.in);
+
+        while (serverIp.isEmpty()) {
+            System.out.print("enter the server ip: ");
+
+            serverIp = scanner.nextLine().trim();
+        }
+
+        while (serverPort == null) {
+            System.out.print("enter server port: ");
+
+            try {
+                serverPort = Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException exception) {
+                System.err.println("failed to parse server port input: " + exception);
+            }
+        }
+
+        return new Pair<>(serverIp, serverPort);
     }
 
 }
