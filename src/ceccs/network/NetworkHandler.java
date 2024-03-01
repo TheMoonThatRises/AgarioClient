@@ -37,9 +37,7 @@ public class NetworkHandler {
 
     private static long ping;
 
-    static {
-        ping = 0;
-    }
+    private long timeoutSleep;
 
     public NetworkHandler(String hostname, int port, Game game) throws SocketException {
         this.serverSocket = new InetSocketAddress(hostname, port);
@@ -52,6 +50,7 @@ public class NetworkHandler {
 
         this.game = game;
 
+        this.timeoutSleep = 1_000;
         this.lastPing = System.nanoTime();
 
         this.pingTimer = new Timer("server_ping_thread");
@@ -70,6 +69,16 @@ public class NetworkHandler {
                     System.err.println("failed receiving incoming packet: " + exception);
 
                     if (Client.registerPacket == null) {
+                        System.out.printf("re-identifying in %d seconds\n", timeoutSleep / 1_000);
+
+                        try {
+                            Thread.sleep(timeoutSleep);
+
+                            timeoutSleep *= 2;
+                        } catch (InterruptedException rException) {
+                            System.err.println("failed to sleep: " + rException);
+                        }
+
                         System.out.println("attempting to re-identify");
 
                         identify();
@@ -104,7 +113,11 @@ public class NetworkHandler {
                 switch (op) {
                     case SERVER_IDENTIFY_OK -> {
                         Client.registerPacket = RegisterPacket.fromJSON(networkPacket.data);
+
                         System.out.println("successfully connected to server");
+                        timeoutSleep = 1_000;
+
+                        pingTimer.scheduleAtFixedRate(pingTask, pingInterval, pingInterval);
                     }
                     case SERVER_PONG -> ping = System.nanoTime() - lastPing;
                     case SERVER_GAME_STATE -> game.updateFromGameData(networkPacket.data);
@@ -183,7 +196,6 @@ public class NetworkHandler {
 
     public void start() {
         serverThread.start();
-        pingTimer.scheduleAtFixedRate(pingTask, pingInterval * 2, pingInterval);
     }
 
     public void writeMousePacket(double x, double y) {
