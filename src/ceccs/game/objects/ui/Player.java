@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import static ceccs.game.configs.PlayerConfigs.*;
+import static ceccs.game.configs.VirusConfigs.virusMass;
 import static ceccs.game.utilities.Utilities.*;
 
 public class Player {
@@ -73,12 +74,12 @@ public class Player {
             this.parentUUID = parentUUID;
         }
 
-        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, Game game, UUID uuid, UUID parentUUID) {
-            this(x, y, vx, vy, playerMouseAcc, playerMouseAcc, mass, false, fill, game, uuid, parentUUID);
+        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, Game game, UUID parentUUID, UUID uuid) {
+            this(x, y, vx, vy, playerMouseAcc, playerMouseAcc, mass, false, fill, game, parentUUID, uuid);
         }
 
-        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID uuid, UUID parentUUID) {
-            this(x, y, 0, 0, playerMouseAcc, playerMouseAcc, mass, hasSplitSpeedBoost, fill, game, uuid, parentUUID);
+        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid) {
+            this(x, y, 0, 0, playerMouseAcc, playerMouseAcc, mass, hasSplitSpeedBoost, fill, game, parentUUID, uuid);
         }
 
         @Override
@@ -160,7 +161,7 @@ public class Player {
                 data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
                 data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
                 data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
-                game, UUID.fromString(data.getString("uuid")), UUID.fromString(data.getString("parent_uuid"))
+                game, UUID.fromString(data.getString("parent_uuid")), UUID.fromString(data.getString("uuid"))
             );
         }
     }
@@ -212,7 +213,7 @@ public class Player {
         });
 
         UUID childUUID = UUID.randomUUID();
-        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, game, childUUID, uuid));
+        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, game, uuid, childUUID));
 
         this.mouseEvent = null;
         this.keyEvents = new HashMap<>();
@@ -269,8 +270,13 @@ public class Player {
         });
     }
 
-    public void toFront() {
-        playerBlobs.values().forEach(PlayerBlob::toFront);
+    public void toFront(boolean spike) {
+        playerBlobs.values()
+            .stream()
+            .filter(blob -> spike
+                ? blob.mass.greaterThanOrEqualTo(virusMass).get()
+                : blob.mass.lessThan(virusMass).get())
+            .forEach(PlayerBlob::toFront);
     }
 
     public double getX() {
@@ -309,7 +315,7 @@ public class Player {
                         }
                     } else if (
                         checkTouch(playerBlob, checkBlob) &&
-                        checkBlob.mass.get() < playerBlob.mass.get()
+                        checkBlob.mass.get() <= playerBlob.mass.get()
                     ) {
                         double[] pos = repositionBlob(playerBlob, checkBlob);
 
