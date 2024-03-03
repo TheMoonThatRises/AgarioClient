@@ -84,9 +84,9 @@ public class Game extends Pane {
             players.values().forEach(Player::animationTick);
 
             pellets.values().forEach(Pellet::toFront);
-            players.values().stream().filter(player -> player.massProperty().lessThan(virusMass).get()).forEach(Player::toFront);
+            players.values().forEach(player -> player.toFront(false));
             viruses.values().forEach(Virus::toFront);
-            players.values().stream().filter(player -> player.massProperty().greaterThanOrEqualTo(virusMass).get()).forEach(Player::toFront);
+            players.values().forEach(player -> player.toFront(true));
         });
     }
 

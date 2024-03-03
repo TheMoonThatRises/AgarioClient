@@ -47,7 +47,6 @@ public class Client extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // 127.0.0.1:2351
         Pair<String, Integer> server = getServer();
 
         game = new Game();
