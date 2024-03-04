@@ -11,8 +11,8 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.util.Pair;
 
+import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 public class Client extends Application {
@@ -47,10 +47,12 @@ public class Client extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Pair<String, Integer> server = getServer();
+        InetSocketAddress server = getServer();
 
         game = new Game();
-        networkHandler = new NetworkHandler(server.getKey(), server.getValue(), game);
+        networkHandler = new NetworkHandler(server, game);
+
+        System.out.println("attempting to connect to " + server.getAddress() + ":" + server.getPort());
 
         networkHandler.start();
         networkHandler.identify();
@@ -114,20 +116,20 @@ public class Client extends Application {
         System.out.println("loading scene");
     }
 
-    private Pair<String, Integer> getServer() {
+    private InetSocketAddress getServer() {
         String serverIp = "";
         Integer serverPort = null;
 
         Scanner scanner = new Scanner(System.in);
 
         while (serverIp.isEmpty()) {
-            System.out.print("enter the server ip: ");
+            System.out.print("\nenter server ip: ");
 
             serverIp = scanner.nextLine().trim();
         }
 
         while (serverPort == null) {
-            System.out.print("enter server port: ");
+            System.out.print("\nenter server port: ");
 
             try {
                 serverPort = Integer.parseInt(scanner.nextLine().trim());
@@ -136,7 +138,9 @@ public class Client extends Application {
             }
         }
 
-        return new Pair<>(serverIp, serverPort);
+        System.out.println();
+
+        return new InetSocketAddress(serverIp, serverPort);
     }
 
 }

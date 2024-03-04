@@ -39,8 +39,8 @@ public class NetworkHandler {
 
     private long timeoutSleep;
 
-    public NetworkHandler(String hostname, int port, Game game) throws SocketException {
-        this.serverSocket = new InetSocketAddress(hostname, port);
+    public NetworkHandler(InetSocketAddress server, Game game) throws SocketException {
+        this.serverSocket = server;
 
         this.identifyPacket = new IdentifyPacket(Client.screenWidth, Client.screenHeight);
 
