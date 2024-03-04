@@ -33,12 +33,12 @@ public class Blob extends Circle {
 
     protected Game game;
 
-    protected AbstractMap<UUID, ? extends Blob> parentArray;
+    protected AbstractMap<UUID, ? extends Blob> parentMap;
 
     protected Blob physicsUpdate;
     protected long lastPhysicsUpdate;
 
-    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentArray) {
+    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
         super(x, y, Math.sqrt(mass/Math.PI), fill);
 
         this.x = x;
@@ -64,7 +64,7 @@ public class Blob extends Circle {
 
         this.game = game;
 
-        this.parentArray = parentArray;
+        this.parentMap = parentMap;
 
         this.uuid = uuid;
 
@@ -77,8 +77,8 @@ public class Blob extends Circle {
         setCacheHint(CacheHint.SPEED);
     }
 
-    public Blob(double x, double y, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentArray) {
-        this(x, y, 0, 0, 0, 0, mass, fill, game, uuid, parentArray);
+    public Blob(double x, double y, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+        this(x, y, 0, 0, 0, 0, mass, fill, game, uuid, parentMap);
     }
 
     public BLOB_TYPES getType() {
@@ -93,8 +93,10 @@ public class Blob extends Circle {
         game.getChildren().remove(this);
     }
 
-    public void removeFromArray() {
-        parentArray.remove(uuid);
+    public void removeFromMap() {
+        if (parentMap != null) {
+            parentMap.remove(uuid);
+        }
     }
 
     public void positionTick() {
@@ -192,9 +194,9 @@ public class Blob extends Circle {
 
             physicsUpdate = null;
             lastPhysicsUpdate = now;
-        } else if (lastPhysicsUpdate + 20 + NetworkHandler.getPing() < now) {
+        } else if (lastPhysicsUpdate + 1_000_000 + NetworkHandler.getPing() < now) {
             removeFromPane();
-            removeFromArray();
+            removeFromMap();
         }
     }
 
