@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ceccs.game.configs.VirusConfigs.virusMass;
-
 public class Game extends Pane {
 
     final public Camera camera;
