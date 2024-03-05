@@ -3,7 +3,6 @@ package ceccs.game.panes;
 import ceccs.Client;
 import ceccs.game.objects.ui.Player;
 import ceccs.network.NetworkHandler;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;

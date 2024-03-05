@@ -2,7 +2,6 @@ package ceccs.game.objects.ui;
 
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.Game;
-import ceccs.network.NetworkHandler;
 import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;

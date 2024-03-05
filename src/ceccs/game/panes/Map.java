@@ -2,7 +2,6 @@ package ceccs.game.panes;
 
 import ceccs.Client;
 import ceccs.game.objects.ui.Player;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;

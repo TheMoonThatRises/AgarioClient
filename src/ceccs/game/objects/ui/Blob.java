@@ -3,7 +3,6 @@ package ceccs.game.objects.ui;
 import ceccs.Client;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.Game;
-import ceccs.network.NetworkHandler;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.ReadOnlyDoubleProperty;
