@@ -19,7 +19,7 @@ public class Heartbeat extends AnimationTimer {
         void routine(long now);
     }
 
-    ArrayList<Routine> routines;
+    final private ArrayList<Routine> routines;
 
     public Heartbeat() {
         this.routines = new ArrayList<>();
