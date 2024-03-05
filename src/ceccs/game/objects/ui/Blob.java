@@ -36,7 +36,6 @@ public class Blob extends Circle {
     protected AbstractMap<UUID, ? extends Blob> parentMap;
 
     protected Blob physicsUpdate;
-    protected long lastPhysicsUpdate;
 
     public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
         super(x, y, Math.sqrt(mass/Math.PI), fill);
@@ -69,7 +68,6 @@ public class Blob extends Circle {
         this.uuid = uuid;
 
         this.physicsUpdate = null;
-        this.lastPhysicsUpdate = 0;
 
         setVisible(false);
 
@@ -145,11 +143,13 @@ public class Blob extends Circle {
         ) {
             if (isVisible()) {
                 setVisible(false);
+                setCacheHint(CacheHint.SPEED);
             }
 
             return;
         } else if (!isVisible()) {
             setVisible(true);
+            setCacheHint(CacheHint.QUALITY);
         }
 
         setCenterX(relX);
@@ -193,8 +193,7 @@ public class Blob extends Circle {
             this.mass.set(physicsUpdate.mass.doubleValue());
 
             physicsUpdate = null;
-            lastPhysicsUpdate = now;
-        } else if (lastPhysicsUpdate + 1_000_000 + NetworkHandler.getPing() < now) {
+        } else {
             removeFromPane();
             removeFromMap();
         }
