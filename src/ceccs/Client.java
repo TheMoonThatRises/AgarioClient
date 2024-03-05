@@ -90,7 +90,7 @@ public class Client extends Application {
         System.out.println("creating game");
         game.load();
         System.out.println("creating overlay");
-        Overlay overlay = new Overlay(game.getSelfPlayer().massProperty());
+        Overlay overlay = new Overlay(game.getSelfPlayer());
         main.getChildren().addAll(game, overlay);
 
         Scene scene = new Scene(main);
