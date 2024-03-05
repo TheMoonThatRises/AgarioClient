@@ -184,7 +184,6 @@ public class Player {
     protected Game game;
 
     protected Player physicsUpdate;
-    protected long lastPhysicsUpdate;
 
     protected Player(Game game, UUID uuid, JSONArray playerBlobs) {
         this.uuid = uuid;
@@ -226,7 +225,6 @@ public class Player {
         this.keyEvents = new HashMap<>();
 
         this.game = game;
-        this.lastPhysicsUpdate = 0;
     }
 
     public void removeFromPane() {
@@ -320,7 +318,6 @@ public class Player {
             });
 
             physicsUpdate = null;
-            lastPhysicsUpdate = now;
         } else {
             removeFromPane();
             game.players.remove(uuid);
