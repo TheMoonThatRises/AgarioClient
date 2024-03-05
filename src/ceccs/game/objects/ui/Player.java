@@ -78,14 +78,6 @@ public class Player {
             this.parentMap = parentMap;
         }
 
-        public PlayerBlob(double x, double y, double vx, double vy, double mass, Paint fill, Game game, UUID parentUUID, UUID uuid, ObservableMap<UUID, PlayerBlob> parentMap) {
-            this(x, y, vx, vy, playerMouseAcc, playerMouseAcc, mass, false, fill, game, parentUUID, uuid, parentMap);
-        }
-
-        public PlayerBlob(double x, double y, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, ObservableMap<UUID, PlayerBlob> parentMap) {
-            this(x, y, 0, 0, playerMouseAcc, playerMouseAcc, mass, hasSplitSpeedBoost, fill, game, parentUUID, uuid, parentMap);
-        }
-
         @Override
         public BLOB_TYPES getType() {
             return BLOB_TYPES.PLAYER;
@@ -148,14 +140,17 @@ public class Player {
             y += vy * velScale;
         }
 
+        @Override
         public void updatePhysicsDataTick(long now) {
-            if (physicsUpdate != null) {
-                this.maxVx = physicsUpdate.maxVx;
-                this.maxVy = physicsUpdate.maxVy;
-                this.hasSplitSpeedBoost = physicsUpdate.hasSplitSpeedBoost;
-                this.splitBoostVelocity = physicsUpdate.splitBoostVelocity;
+            if (this.physicsUpdate != null) {
+                maxVx = physicsUpdate.maxVx;
+                maxVy = physicsUpdate.maxVy;
+                hasSplitSpeedBoost = physicsUpdate.hasSplitSpeedBoost;
+                splitBoostVelocity = physicsUpdate.splitBoostVelocity;
 
                 cooldowns.updateCooldowns(physicsUpdate.cooldowns);
+
+                this.physicsUpdate = null;
             }
 
             super.updatePhysicsDataTick(now);
@@ -191,48 +186,6 @@ public class Player {
 
     protected Player physicsUpdate;
     protected long lastPhysicsUpdate;
-
-    public Player(double x, double y, double vx, double vy, double mass, Paint fill, Game game, UUID uuid
-    ) {
-        this.uuid = uuid;
-        this.playerBlobs = FXCollections.observableHashMap();
-
-        this.totalMass = new DoublePropertyBase(0.0) {
-            @Override
-            public Object getBean() {
-                return Player.this;
-            }
-
-            @Override
-            public String getName() {
-                return "totalMass";
-            }
-        };
-
-        this.playerBlobs.addListener((MapChangeListener<UUID, PlayerBlob>) change -> {
-            totalMass.unbind();
-            massBinding = null;
-
-            this.playerBlobs.values().forEach(playerBlob -> {
-                if (massBinding == null) {
-                    massBinding = playerBlob.massProperty().add(0);
-                } else {
-                    massBinding = massBinding.add(playerBlob.massProperty());
-                }
-            });
-
-            totalMass.bind(massBinding);
-        });
-
-        UUID childUUID = UUID.randomUUID();
-        this.playerBlobs.put(childUUID, new PlayerBlob(x, y, vx, vy, mass, fill, game, uuid, childUUID, this.playerBlobs));
-
-        this.mouseEvent = null;
-        this.keyEvents = new HashMap<>();
-
-        this.game = game;
-        this.lastPhysicsUpdate = 0;
-    }
 
     protected Player(Game game, UUID uuid, JSONArray playerBlobs) {
         this.uuid = uuid;
@@ -369,7 +322,7 @@ public class Player {
 
             physicsUpdate = null;
             lastPhysicsUpdate = now;
-        } else if (lastPhysicsUpdate + 1_000_000 + NetworkHandler.getPing() < now) {
+        } else {
             removeFromPane();
             game.players.remove(uuid);
         }

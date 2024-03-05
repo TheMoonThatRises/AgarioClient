@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Game extends Pane {
 
@@ -22,6 +23,8 @@ public class Game extends Pane {
     final public ConcurrentHashMap<UUID, Food> foods;
     final public ConcurrentHashMap<UUID, Pellet> pellets;
     final public ConcurrentHashMap<UUID, Virus> viruses;
+
+    private AtomicBoolean hasPhysicsUpdate;
 
     public Game() {
         this.setWidth(Client.screenWidth);
@@ -37,6 +40,8 @@ public class Game extends Pane {
         this.players = new ConcurrentHashMap<>();
 
         this.camera = new Camera();
+
+        this.hasPhysicsUpdate = new AtomicBoolean(false);
 
         Client.heartbeat.addRoutine(now -> {
             if (Client.registerPacket == null) {
@@ -57,10 +62,12 @@ public class Game extends Pane {
 
             camera.smoothCameraTick();
 
-            players.values().forEach(player -> player.updatePhysicsDataTick(now));
-            pellets.values().forEach(pellet -> pellet.updatePhysicsDataTick(now));
-            viruses.values().forEach(virus -> virus.updatePhysicsDataTick(now));
-            foods.values().forEach(food -> food.updatePhysicsDataTick(now));
+            if (hasPhysicsUpdate.get()) {
+                players.values().forEach(player -> player.updatePhysicsDataTick(now));
+                pellets.values().forEach(pellet -> pellet.updatePhysicsDataTick(now));
+                viruses.values().forEach(virus -> virus.updatePhysicsDataTick(now));
+                foods.values().forEach(food -> food.updatePhysicsDataTick(now));
+            }
 
             players.values().forEach(Player::positionTick);
             pellets.values().forEach(Pellet::positionTick);
@@ -180,6 +187,8 @@ public class Game extends Pane {
                 System.err.println("concurrent issue: " + exception);
             }
         }
+
+        hasPhysicsUpdate.set(true);
     }
 
 }
