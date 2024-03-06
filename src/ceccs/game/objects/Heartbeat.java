@@ -11,8 +11,6 @@ public class Heartbeat extends AnimationTimer {
     private int frameTimeIndex = 0;
     private boolean arrayFilled = false;
 
-    private long prevTime;
-
     private double framerate;
 
     public interface Routine {
@@ -25,7 +23,6 @@ public class Heartbeat extends AnimationTimer {
         this.routines = new ArrayList<>();
 
         this.framerate = 0;
-        this.prevTime = 0;
     }
 
     public void addRoutine(Routine routine) {
@@ -34,11 +31,9 @@ public class Heartbeat extends AnimationTimer {
 
     @Override
     public void handle(long now) {
-        if (now - prevTime < 1_000_000_000 / Client.registerPacket.maxFramerate()) {
+        if (now - frameTimes[frameTimeIndex] < 500_000_000 / Client.registerPacket.maxFramerate()) {
             return;
         }
-
-        prevTime = now;
 
         long oldFrameTime = frameTimes[frameTimeIndex];
         frameTimes[frameTimeIndex] = now;
