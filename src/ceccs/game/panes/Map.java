@@ -24,8 +24,8 @@ public class Map extends Pane {
         this.location = new Circle(mapDim / 100, Color.WHITE);
 
         Client.heartbeat.addRoutine(now -> {
-            location.setCenterX(player.getX() / Client.registerPacket.width() * mapDim);
-            location.setCenterY(player.getY() / Client.registerPacket.height() * mapDim);
+            this.location.setCenterX(player.getX() / Client.registerPacket.width() * mapDim);
+            this.location.setCenterY(player.getY() / Client.registerPacket.height() * mapDim);
         });
 
         super.getChildren().add(this.location);
