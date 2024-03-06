@@ -17,6 +17,8 @@ public class Overlay extends BorderPane {
     final private Label ping;
     final private Label coordinate;
 
+    final private Map map;
+
     public Overlay(Player player) {
         super.setPadding(new Insets(10));
 
@@ -25,7 +27,8 @@ public class Overlay extends BorderPane {
         this.ping = new Label("ping:");
         this.coordinate = new Label("coords:");
 
-        this.mass.setLayoutY(Client.screenHeight);
+        this.map = new Map(player);
+
         this.mass.textProperty().bind(player.massProperty().asString("mass: %.2f"));
 
         Client.heartbeat.addRoutine(now -> {
@@ -35,7 +38,9 @@ public class Overlay extends BorderPane {
         });
 
         VBox infographics = new VBox(5, this.fps, this.mass, this.ping, this.coordinate);
-        HBox mapLayout = new HBox(new Map(player));
+        HBox mapLayout = new HBox(this.map);
+
+        infographics.setAlignment(Pos.TOP_LEFT);
         mapLayout.setAlignment(Pos.BASELINE_RIGHT);
 
         super.setTop(infographics);
