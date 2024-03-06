@@ -67,6 +67,8 @@ public class Game extends Pane {
                 pellets.values().forEach(pellet -> pellet.updatePhysicsDataTick(now));
                 viruses.values().forEach(virus -> virus.updatePhysicsDataTick(now));
                 foods.values().forEach(food -> food.updatePhysicsDataTick(now));
+
+                hasPhysicsUpdate.set(false);
             }
 
             players.values().forEach(Player::positionTick);
