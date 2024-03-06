@@ -245,11 +245,15 @@ public class Player {
     }
 
     public double getX() {
-        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass.get())).get().getX();
+        return
+            playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.x).reduce(0.0, Double::sum) /
+            playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
     }
 
     public double getY() {
-        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass.get())).get().getY();
+        return
+            playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.y).reduce(0.0, Double::sum) /
+            playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
     }
 
     public void positionTick() {
