@@ -142,13 +142,11 @@ public class Blob extends Circle {
         ) {
             if (isVisible()) {
                 setVisible(false);
-                setCacheHint(CacheHint.SPEED);
             }
 
             return;
         } else if (!isVisible()) {
             setVisible(true);
-            setCacheHint(CacheHint.QUALITY);
         }
 
         setCenterX(relX);

@@ -63,11 +63,9 @@ public class GridItem extends Line {
         ) {
             if (isVisible()) {
                 setVisible(false);
-                setCacheHint(CacheHint.SPEED);
             }
         } else if (!isVisible()) {
             setVisible(true);
-            setCacheHint(CacheHint.QUALITY);
         }
     }
 
