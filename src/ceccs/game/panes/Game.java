@@ -24,7 +24,7 @@ public class Game extends Pane {
     final public ConcurrentHashMap<UUID, Pellet> pellets;
     final public ConcurrentHashMap<UUID, Virus> viruses;
 
-    private AtomicBoolean hasPhysicsUpdate;
+    final private AtomicBoolean hasPhysicsUpdate;
 
     public Game() {
         this.setWidth(Client.screenWidth);
