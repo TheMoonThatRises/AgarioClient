@@ -152,7 +152,9 @@ public class Game extends Pane {
                     pellets.put(pellet.uuid, pellet);
                 }
             } catch (NullPointerException exception) {
-                System.err.println("concurrent issue: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("concurrent issue looping through pellet");
             }
         }
 
@@ -169,7 +171,9 @@ public class Game extends Pane {
                     viruses.put(virus.uuid, virus);
                 }
             } catch (NullPointerException exception) {
-                System.err.println("concurrent issue: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("concurrent issue when looping through virus");
             }
         }
 
@@ -186,7 +190,9 @@ public class Game extends Pane {
                     players.put(player.uuid, player);
                 }
             } catch (NullPointerException exception) {
-                System.err.println("concurrent issue: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("concurrent issue when looping through player");
             }
         }
 

@@ -66,7 +66,9 @@ public class NetworkHandler {
 
                     handleIncomingPacket(inPacket);
                 } catch (IOException exception) {
-                    System.err.println("failed receiving incoming packet: " + exception);
+                    exception.printStackTrace();
+
+                    System.err.println("failed receiving incoming packet");
 
                     if (Client.registerPacket == null) {
                         System.out.printf("re-identifying in %d seconds\n", timeoutSleep / 1_000);
@@ -76,7 +78,9 @@ public class NetworkHandler {
 
                             timeoutSleep *= 2;
                         } catch (InterruptedException rException) {
-                            System.err.println("failed to sleep: " + rException);
+                            rException.printStackTrace();
+
+                            System.err.println("failed to sleep");
                         }
 
                         System.out.println("attempting to re-identify");
@@ -183,10 +187,14 @@ public class NetworkHandler {
             try {
                 clientSocket.send(packet);
             } catch (IOException exception) {
-                System.err.println("failed to send packet to server: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("failed to send packet to server");
             }
         } catch (IOException exception) {
-            System.err.println("failed to compress packet: " + exception);
+            exception.printStackTrace();
+
+            System.err.println("failed to compress packet");
         }
     }
 
