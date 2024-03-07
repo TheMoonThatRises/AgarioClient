@@ -1,5 +1,6 @@
 package ceccs.game.objects.ui;
 
+import ceccs.exceptions.InternalException;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.Game;
 import javafx.beans.binding.NumberBinding;
@@ -16,9 +17,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static ceccs.exceptions.InternalException.checkSafeDivision;
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusMass;
 import static ceccs.game.utilities.Utilities.*;
@@ -242,17 +245,42 @@ public class Player {
                 : blob.mass.lessThan(virusMass).get())
             .forEach(PlayerBlob::toFront);
     }
-
     public double getX() {
-        return
-            playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.x).reduce(0.0, Double::sum) /
-            playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
+        double numerator = playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.x).reduce(0.0, Double::sum);
+        double denominator = playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
+
+        try {
+            return checkSafeDivision(numerator, denominator);
+        } catch (InternalException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to get player x");
+
+            return getLegacyX();
+        }
     }
 
     public double getY() {
-        return
-            playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.y).reduce(0.0, Double::sum) /
-            playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
+        double numerator = playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.y).reduce(0.0, Double::sum);
+        double denominator = playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
+
+        try {
+            return checkSafeDivision(numerator, denominator);
+        } catch (InternalException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to get player y");
+
+            return getLegacyY();
+        }
+    }
+
+    protected double getLegacyX() {
+        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass.get())).get().getX();
+    }
+
+    protected double getLegacyY() {
+        return playerBlobs.values().stream().max(Comparator.comparingDouble(b -> b.mass.get())).get().getY();
     }
 
     public void positionTick() {
