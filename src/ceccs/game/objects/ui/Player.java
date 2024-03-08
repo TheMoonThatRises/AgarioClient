@@ -1,6 +1,6 @@
 package ceccs.game.objects.ui;
 
-import ceccs.exceptions.InternalException;
+import ceccs.utils.InternalException;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.Game;
 import javafx.beans.binding.NumberBinding;
@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static ceccs.exceptions.InternalException.checkSafeDivision;
+import static ceccs.utils.InternalException.checkSafeDivision;
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusMass;
 import static ceccs.game.utilities.Utilities.*;
@@ -176,14 +176,14 @@ public class Player {
 
     final public UUID uuid;
 
-    protected ObservableMap<UUID, PlayerBlob> playerBlobs;
+    final protected ObservableMap<UUID, PlayerBlob> playerBlobs;
     protected DoubleProperty totalMass;
     protected NumberBinding massBinding;
 
-    MouseEvent mouseEvent;
-    HashMap<KeyCode, Boolean> keyEvents;
+    protected MouseEvent mouseEvent;
+    final protected HashMap<KeyCode, Boolean> keyEvents;
 
-    protected Game game;
+    final protected Game game;
 
     protected Player physicsUpdate;
 
