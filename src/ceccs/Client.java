@@ -5,6 +5,7 @@ import ceccs.game.panes.Game;
 import ceccs.game.panes.Overlay;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.RegisterPacket;
+import ceccs.utils.Configurations;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -48,6 +49,9 @@ public class Client extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         InetSocketAddress server = getServer();
+
+        Configurations.shared.setProperty("server.ip", server.getHostString());
+        Configurations.shared.setProperty("server.port", String.valueOf(server.getPort()));
 
         game = new Game();
         networkHandler = new NetworkHandler(server, game);
