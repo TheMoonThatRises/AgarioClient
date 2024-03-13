@@ -92,10 +92,7 @@ public class Player {
 
         @Override
         public void removeFromMap() {
-            System.out.println("trying to remove from map");
             parent.playerBlobs.remove(uuid);
-
-            
         }
 
         public void positionTick(MouseEvent mouseEvent) {
