@@ -74,10 +74,6 @@ public class Blob extends Circle {
         setCacheHint(CacheHint.SPEED);
     }
 
-    public Blob(double x, double y, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
-        this(x, y, 0, 0, 0, 0, mass, fill, game, uuid, parentMap);
-    }
-
     public BLOB_TYPES getType() {
         return BLOB_TYPES.GENERIC;
     }
@@ -179,7 +175,7 @@ public class Blob extends Circle {
         this.y = y;
     }
 
-    public void updatePhysicsDataTick(long now) {
+    public void updatePhysicsDataTick() {
         if (physicsUpdate != null) {
             this.x = physicsUpdate.x;
             this.y = physicsUpdate.y;
