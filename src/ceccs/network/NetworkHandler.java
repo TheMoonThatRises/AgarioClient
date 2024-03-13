@@ -4,6 +4,7 @@ import ceccs.Client;
 import ceccs.game.panes.Game;
 import ceccs.network.data.*;
 import ceccs.network.utils.GZip;
+import ceccs.utils.InternalPathFinder;
 import javafx.application.Platform;
 import org.json.JSONObject;
 
@@ -11,12 +12,15 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class NetworkHandler {
+
+    final private InternalPathFinder networkLogger;
+    final private long networkSampleTime;
+    private long lastWrite;
 
     final private static int pingInterval = 1_000;
 
@@ -39,7 +43,7 @@ public class NetworkHandler {
 
     private long timeoutSleep;
 
-    public NetworkHandler(InetSocketAddress server, Game game) throws SocketException {
+    public NetworkHandler(InetSocketAddress server, Game game) throws IOException {
         this.serverSocket = server;
 
         this.identifyPacket = new IdentifyPacket(Client.screenWidth, Client.screenHeight);
@@ -54,6 +58,10 @@ public class NetworkHandler {
         this.lastPing = System.nanoTime();
 
         this.pingTimer = new Timer("server_ping_thread");
+
+        this.networkLogger = new InternalPathFinder("logs", "network-samples.log");
+        this.networkSampleTime = 15_000_000_000L;
+        this.lastWrite = 0;
 
         this.serverThread = new Thread(() -> {
             while (true) {
@@ -104,6 +112,12 @@ public class NetworkHandler {
         try {
             String received = new String(GZip.decompress(packet.getData()));
             NetworkPacket networkPacket = NetworkPacket.fromString(received);
+
+            if (lastWrite + networkSampleTime < System.nanoTime() || lastWrite == 0) {
+                networkLogger.writeToFile(received + "\n", true);
+
+                lastWrite = System.nanoTime();
+            }
 
             Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op);
 
