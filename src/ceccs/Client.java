@@ -33,6 +33,8 @@ public class Client extends Application {
 
     static private NetworkHandler networkHandler;
 
+    static private boolean didMouseExit;
+
     static {
         screen = Screen.getPrimary().getVisualBounds();
         screenWidth = screen.getWidth();
@@ -94,8 +96,10 @@ public class Client extends Application {
 
         System.out.println("creating game");
         game.load();
+
         System.out.println("creating overlay");
         Overlay overlay = new Overlay(game.getSelfPlayer());
+
         main.getChildren().addAll(game, overlay);
 
         Scene scene = new Scene(main);
@@ -105,7 +109,13 @@ public class Client extends Application {
 
         Thread.sleep(500);
 
+        didMouseExit = false;
+
         scene.setOnMouseMoved(event -> {
+            if (didMouseExit) {
+                return;
+            }
+
             networkHandler.writeMousePacket(event.getX(), event.getY());
 
             if (registerPacket != null && game.getSelfPlayer() != null) {
@@ -113,6 +123,10 @@ public class Client extends Application {
             }
         });
         scene.setOnScroll(event -> {
+            if (didMouseExit) {
+                return;
+            }
+
             try {
                 game.camera.updateScrollWheel(event);
             } catch (InternalException exception) {
@@ -121,8 +135,23 @@ public class Client extends Application {
                 System.err.println("player mass is zero?");
             }
         });
-        scene.setOnKeyPressed(event -> networkHandler.writeKeyPacket(event.getCode().getCode(), true));
-        scene.setOnKeyReleased(event -> networkHandler.writeKeyPacket(event.getCode().getCode(), false));
+        scene.setOnKeyPressed(event -> {
+            if (didMouseExit) {
+                return;
+            }
+
+            networkHandler.writeKeyPacket(event.getCode().getCode(), true);
+        });
+        scene.setOnKeyReleased(event -> {
+            if (didMouseExit) {
+                return;
+            }
+
+            networkHandler.writeKeyPacket(event.getCode().getCode(), false);
+        });
+
+        scene.setOnMouseExited(event -> didMouseExit = true);
+        scene.setOnMouseEntered(event -> didMouseExit = false);
 
         heartbeat.start();
 
