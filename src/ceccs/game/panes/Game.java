@@ -133,7 +133,7 @@ public class Game extends Pane {
 
     public void updateFromGameData(JSONObject data) {
         if (updatingPhysics.get()) {
-            System.out.println("server sending packets faster than processing");
+            System.err.println("server sending packets faster than processing");
             return;
         }
 
