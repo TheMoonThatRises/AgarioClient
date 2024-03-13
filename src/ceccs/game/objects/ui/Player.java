@@ -60,13 +60,13 @@ public class Player {
 
         protected double splitBoostVelocity;
 
-        protected Cooldowns cooldowns;
+        final protected Cooldowns cooldowns;
 
         protected PlayerBlob physicsUpdate;
 
-        protected Player parent;
+        final protected ObservableMap<UUID, PlayerBlob> parentMap;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, Player parent) {
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, ObservableMap<UUID, PlayerBlob> parentMap) {
             super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
 
             this.maxVx = 0;
@@ -82,7 +82,16 @@ public class Player {
 
             this.parentUUID = parentUUID;
 
-            this.parent = parent;
+            this.parentMap = parentMap;
+        }
+
+        public PlayerBlob(PlayerBlob playerBlob, ObservableMap<UUID, PlayerBlob> parentMap) {
+            this(
+                playerBlob.x, playerBlob.y, playerBlob.vx, playerBlob.vy, playerBlob.ax, playerBlob.ay,
+                playerBlob.mass.get(), playerBlob.hasSplitSpeedBoost,
+                playerBlob.getFill(), playerBlob.game, playerBlob.parentUUID, playerBlob.uuid,
+                parentMap
+            );
         }
 
         @Override
@@ -92,7 +101,7 @@ public class Player {
 
         @Override
         public void removeFromMap() {
-            parent.playerBlobs.remove(uuid);
+            parentMap.remove(uuid);
         }
 
         public void positionTick(MouseEvent mouseEvent) {
@@ -179,13 +188,13 @@ public class Player {
             super.updatePhysics(blob);
         }
 
-        public static PlayerBlob fromJSON(JSONObject data, Game game, Player parent) {
+        public static PlayerBlob fromJSON(JSONObject data, Game game, ObservableMap<UUID, PlayerBlob> parentMap) {
             return new PlayerBlob(
                 data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
                 data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
                 data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
                 game, UUID.fromString(data.getString("parent_uuid")), UUID.fromString(data.getString("uuid")),
-                parent
+                parentMap
             );
         }
     }
@@ -235,7 +244,7 @@ public class Player {
         });
 
         for (int i = 0; i < playerBlobs.length(); ++i) {
-            PlayerBlob playerBlob = PlayerBlob.fromJSON(playerBlobs.getJSONObject(i), game, this);
+            PlayerBlob playerBlob = PlayerBlob.fromJSON(playerBlobs.getJSONObject(i), game, this.playerBlobs);
             this.playerBlobs.put(playerBlob.uuid, playerBlob);
         }
 
@@ -358,7 +367,7 @@ public class Player {
 
             physicsUpdate.playerBlobs.values().forEach(blob -> {
                 if (!playerBlobs.containsKey(blob.uuid)) {
-                    playerBlobs.put(blob.uuid, blob);
+                    playerBlobs.put(blob.uuid, new PlayerBlob(blob, playerBlobs));
                 }
             });
 
