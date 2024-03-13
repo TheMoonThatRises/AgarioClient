@@ -28,11 +28,11 @@ public class Blob extends Circle {
     final protected double initialVx;
     final protected  double initialVy;
 
-    protected DoubleProperty mass;
+    final protected DoubleProperty mass;
 
-    protected Game game;
+    final protected Game game;
 
-    protected AbstractMap<UUID, ? extends Blob> parentMap;
+    final protected AbstractMap<UUID, ? extends Blob> parentMap;
 
     protected Blob physicsUpdate;
 
