@@ -3,6 +3,7 @@ package ceccs.game.panes;
 import ceccs.Client;
 import ceccs.game.objects.Camera;
 import ceccs.game.objects.ui.*;
+import ceccs.utils.InternalException;
 import javafx.scene.layout.Pane;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,6 +27,8 @@ public class Game extends Pane {
 
     final private AtomicBoolean hasPhysicsUpdate;
 
+    final private AtomicBoolean updatingPhysics;
+
     public Game() {
         this.setWidth(Client.screenWidth);
         this.setHeight(Client.screenHeight);
@@ -42,6 +45,7 @@ public class Game extends Pane {
         this.camera = new Camera();
 
         this.hasPhysicsUpdate = new AtomicBoolean(false);
+        this.updatingPhysics = new AtomicBoolean(false);
 
         Client.heartbeat.addRoutine(now -> {
             if (Client.registerPacket == null) {
@@ -63,10 +67,10 @@ public class Game extends Pane {
             camera.smoothCameraTick();
 
             if (hasPhysicsUpdate.get()) {
-                players.values().forEach(player -> player.updatePhysicsDataTick(now));
-                pellets.values().forEach(pellet -> pellet.updatePhysicsDataTick(now));
-                viruses.values().forEach(virus -> virus.updatePhysicsDataTick(now));
-                foods.values().forEach(food -> food.updatePhysicsDataTick(now));
+                players.values().forEach(Player::updatePhysicsDataTick);
+                pellets.values().forEach(Blob::updatePhysicsDataTick);
+                viruses.values().forEach(Blob::updatePhysicsDataTick);
+                foods.values().forEach(Blob::updatePhysicsDataTick);
 
                 hasPhysicsUpdate.set(false);
             }
@@ -98,7 +102,13 @@ public class Game extends Pane {
     }
 
     public void load() {
-        camera.setMass(this.getSelfPlayer().massProperty());
+        try {
+            camera.setMass(this.getSelfPlayer().massProperty());
+        } catch (InternalException exception) {
+            System.err.println("player mass is zero?");
+
+            throw new RuntimeException(exception);
+        }
 
         for (double x = 0; x <= Client.registerPacket.width(); x += gridSpacing) {
             GridItem line = new GridItem(x, 0, x, Client.registerPacket.height(), this);
@@ -122,6 +132,13 @@ public class Game extends Pane {
     }
 
     public void updateFromGameData(JSONObject data) {
+        if (updatingPhysics.get()) {
+            System.out.println("server sending packets faster than processing");
+            return;
+        }
+
+        updatingPhysics.set(true);
+
         // load foods
         JSONArray foodArray = data.getJSONArray("foods");
 
@@ -135,7 +152,9 @@ public class Game extends Pane {
                     foods.put(food.uuid, food);
                 }
             } catch (NullPointerException exception) {
-                System.err.println("concurrent issue: " + exception);
+                exception.printStackTrace();
+
+                System.err.println("concurrent issue looping through food");
             }
         }
 
@@ -196,6 +215,7 @@ public class Game extends Pane {
             }
         }
 
+        updatingPhysics.set(false);
         hasPhysicsUpdate.set(true);
     }
 

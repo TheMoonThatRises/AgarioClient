@@ -6,6 +6,7 @@ import ceccs.game.panes.Overlay;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.RegisterPacket;
 import ceccs.utils.Configurations;
+import ceccs.utils.InternalException;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -111,7 +112,15 @@ public class Client extends Application {
                 game.getSelfPlayer().updateMouseEvent(event);
             }
         });
-        scene.setOnScroll(event -> game.camera.updateScrollWheel(event));
+        scene.setOnScroll(event -> {
+            try {
+                game.camera.updateScrollWheel(event);
+            } catch (InternalException exception) {
+                exception.printStackTrace();
+
+                System.err.println("player mass is zero?");
+            }
+        });
         scene.setOnKeyPressed(event -> networkHandler.writeKeyPacket(event.getCode().getCode(), true));
         scene.setOnKeyReleased(event -> networkHandler.writeKeyPacket(event.getCode().getCode(), false));
 

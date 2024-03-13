@@ -53,6 +53,9 @@ public class Player {
         protected double maxVx;
         protected double maxVy;
 
+        protected double relX;
+        protected double relY;
+
         protected boolean hasSplitSpeedBoost;
 
         protected double splitBoostVelocity;
@@ -61,13 +64,16 @@ public class Player {
 
         protected PlayerBlob physicsUpdate;
 
-        protected ObservableMap<UUID, PlayerBlob> parentMap;
+        protected Player parent;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, ObservableMap<UUID, PlayerBlob> parentMap) {
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, Player parent) {
             super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
 
             this.maxVx = 0;
             this.maxVy = 0;
+
+            this.relX = 0;
+            this.relY = 0;
 
             this.hasSplitSpeedBoost = hasSplitSpeedBoost;
             this.splitBoostVelocity = playerSplitVelocity;
@@ -76,7 +82,7 @@ public class Player {
 
             this.parentUUID = parentUUID;
 
-            this.parentMap = parentMap;
+            this.parent = parent;
         }
 
         @Override
@@ -86,13 +92,13 @@ public class Player {
 
         @Override
         public void removeFromMap() {
-            parentMap.remove(uuid);
+            System.out.println("trying to remove from map");
+            parent.playerBlobs.remove(uuid);
+
+            
         }
 
         public void positionTick(MouseEvent mouseEvent) {
-            Double relX = null;
-            Double relY = null;
-
             if (mouseEvent != null && !mouseEvent.isConsumed()) {
                 relX = mouseEvent.getX() - getRelativeX();
                 relY = mouseEvent.getY() - getRelativeY();
@@ -101,7 +107,17 @@ public class Player {
                 maxVy = playerVelocities[closestNumber(playerVelocities, relY / 1000)];
             }
 
-            double velScale = calcVelocityModifier(mass.get());
+            double velScale;
+
+            try {
+                velScale = calcVelocityModifier(mass.get());
+            } catch (InternalException exception) {
+                exception.printStackTrace();
+
+                System.err.println("mass is zero in position tick");
+
+                return;
+            }
 
             ax = maxVx < 0
                 ? -Math.abs(ax)
@@ -121,7 +137,7 @@ public class Player {
                     : maxVy
             );
 
-            if (hasSplitSpeedBoost && relX != null) {
+            if (hasSplitSpeedBoost) {
                 splitBoostVelocity -= playerSplitDecay;
 
                 if (splitBoostVelocity <= 0) {
@@ -142,7 +158,7 @@ public class Player {
         }
 
         @Override
-        public void updatePhysicsDataTick(long now) {
+        public void updatePhysicsDataTick() {
             if (this.physicsUpdate != null) {
                 maxVx = physicsUpdate.maxVx;
                 maxVy = physicsUpdate.maxVy;
@@ -151,10 +167,13 @@ public class Player {
 
                 cooldowns.updateCooldowns(physicsUpdate.cooldowns);
 
-                this.physicsUpdate = null;
-            }
+                super.updatePhysicsDataTick();
 
-            super.updatePhysicsDataTick(now);
+                this.physicsUpdate = null;
+            } else {
+                removeFromPane();
+                removeFromMap();
+            }
         }
 
         public void updatePhysics(PlayerBlob blob) {
@@ -163,13 +182,13 @@ public class Player {
             super.updatePhysics(blob);
         }
 
-        public static PlayerBlob fromJSON(JSONObject data, Game game, ObservableMap<UUID, PlayerBlob> parentMap) {
+        public static PlayerBlob fromJSON(JSONObject data, Game game, Player parent) {
             return new PlayerBlob(
                 data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
                 data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
                 data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
                 game, UUID.fromString(data.getString("parent_uuid")), UUID.fromString(data.getString("uuid")),
-                parentMap
+                parent
             );
         }
     }
@@ -219,7 +238,7 @@ public class Player {
         });
 
         for (int i = 0; i < playerBlobs.length(); ++i) {
-            PlayerBlob playerBlob = PlayerBlob.fromJSON(playerBlobs.getJSONObject(i), game, this.playerBlobs);
+            PlayerBlob playerBlob = PlayerBlob.fromJSON(playerBlobs.getJSONObject(i), game, this);
             this.playerBlobs.put(playerBlob.uuid, playerBlob);
         }
 
@@ -230,11 +249,7 @@ public class Player {
     }
 
     public void removeFromPane() {
-        playerBlobs.values().forEach(playerBlob -> {
-            if (playerBlob.getParent() != null) {
-                game.getChildren().remove(playerBlob);
-            }
-        });
+        playerBlobs.values().forEach(PlayerBlob::removeFromPane);
     }
 
     public void toFront(boolean spike) {
@@ -245,6 +260,7 @@ public class Player {
                 : blob.mass.lessThan(virusMass).get())
             .forEach(PlayerBlob::toFront);
     }
+
     public double getX() {
         double numerator = playerBlobs.values().stream().map(blob -> blob.mass.get() * blob.x).reduce(0.0, Double::sum);
         double denominator = playerBlobs.values().stream().map(blob -> blob.mass.get()).reduce(0.0, Double::sum);
@@ -307,7 +323,7 @@ public class Player {
                             playerBlob.mass.set(playerBlob.mass.get() + checkBlob.mass.get());
 
                             checkBlob.removeFromPane();
-                            playerBlobs.remove(uuidList.get(j));
+                            checkBlob.removeFromMap();
                         }
                     } else if (
                         checkTouch(playerBlob, checkBlob) &&
@@ -335,11 +351,12 @@ public class Player {
         this.mouseEvent = mouseEvent;
     }
 
-    public void updatePhysicsDataTick(long now) {
+    public void updatePhysicsDataTick() {
         if (physicsUpdate != null) {
             ArrayList<UUID> uuidList = new ArrayList<>(playerBlobs.keySet());
-            for (int i = playerBlobs.size() - 1; i >= 0; --i) {
-                playerBlobs.get(uuidList.get(i)).updatePhysicsDataTick(now);
+
+            for (int i = uuidList.size() - 1; i >= 0; --i) {
+                playerBlobs.get(uuidList.get(i)).updatePhysicsDataTick();
             }
 
             physicsUpdate.playerBlobs.values().forEach(blob -> {
