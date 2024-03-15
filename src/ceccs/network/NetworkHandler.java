@@ -1,7 +1,7 @@
 package ceccs.network;
 
 import ceccs.Client;
-import ceccs.game.panes.Game;
+import ceccs.game.panes.game.Game;
 import ceccs.network.data.*;
 import ceccs.network.utils.GZip;
 import ceccs.utils.InternalPathFinder;
@@ -59,7 +59,7 @@ public class NetworkHandler {
 
         this.pingTimer = new Timer("server_ping_thread");
 
-        this.networkLogger = new InternalPathFinder("logs", "network-samples.log");
+        this.networkLogger = new InternalPathFinder(true, "logs", "network-samples.log");
         this.networkSampleTime = 15_000_000_000L;
         this.lastWrite = 0;
 

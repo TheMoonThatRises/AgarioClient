@@ -1,4 +1,4 @@
-package ceccs.game.panes;
+package ceccs.game.panes.game;
 
 import ceccs.Client;
 import ceccs.game.objects.Camera;

@@ -1,8 +1,8 @@
 package ceccs;
 
 import ceccs.game.objects.Heartbeat;
-import ceccs.game.panes.Game;
-import ceccs.game.panes.Overlay;
+import ceccs.game.panes.game.Overlay;
+import ceccs.game.panes.game.Game;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.RegisterPacket;
 import ceccs.utils.Configurations;

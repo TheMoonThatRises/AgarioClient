@@ -2,7 +2,7 @@ package ceccs.game.objects.ui;
 
 import ceccs.utils.InternalException;
 import ceccs.game.objects.BLOB_TYPES;
-import ceccs.game.panes.Game;
+import ceccs.game.panes.game.Game;
 import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
