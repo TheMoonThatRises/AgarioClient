@@ -24,7 +24,7 @@ public class Configurations {
     }
 
     public Configurations() throws IOException {
-        this.fileHandler = new InternalPathFinder("configs.cfg");
+        this.fileHandler = new InternalPathFinder("configs.properties", false);
         this.properties = new Properties();
 
         try {
