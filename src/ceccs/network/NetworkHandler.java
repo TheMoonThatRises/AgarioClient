@@ -43,10 +43,10 @@ public class NetworkHandler {
 
     private long timeoutSleep;
 
-    public NetworkHandler(InetSocketAddress server, Game game) throws IOException {
+    public NetworkHandler(IdentifyPacket identifyPacket, InetSocketAddress server, Game game) throws IOException {
         this.serverSocket = server;
 
-        this.identifyPacket = new IdentifyPacket(Client.screenWidth, Client.screenHeight);
+        this.identifyPacket = identifyPacket;
 
         this.clientSocket = new DatagramSocket();
         this.clientSocket.setSoTimeout(pingInterval * 2);

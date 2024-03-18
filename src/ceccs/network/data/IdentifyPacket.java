@@ -2,12 +2,12 @@ package ceccs.network.data;
 
 import org.json.JSONObject;
 
-public record IdentifyPacket(double screenWidth, double screenHeight) {
+public record IdentifyPacket(String username, double screenWidth, double screenHeight) {
 
     public JSONObject toJSON() {
         return new JSONObject(String.format(
-                "{\"screen_width\":%f,\"screen_height\":%f}",
-                screenWidth, screenHeight
+                "{\"username\":\"%s\",\"screen_width\":%f,\"screen_height\":%f}",
+                username, screenWidth, screenHeight
         ));
     }
 

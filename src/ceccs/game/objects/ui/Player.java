@@ -1,5 +1,6 @@
 package ceccs.game.objects.ui;
 
+import ceccs.game.utilities.Utilities;
 import ceccs.utils.InternalException;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.game.Game;
@@ -10,8 +11,10 @@ import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -64,9 +67,13 @@ public class Player {
 
         protected PlayerBlob physicsUpdate;
 
-        final protected ObservableMap<UUID, PlayerBlob> parentMap;
+        final protected Player parentPlayer;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, ObservableMap<UUID, PlayerBlob> parentMap) {
+        final protected Label blobName;
+
+        final protected StackPane parentPane;
+
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, Player parentPlayer) {
             super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
 
             this.maxVx = 0;
@@ -82,15 +89,20 @@ public class Player {
 
             this.parentUUID = parentUUID;
 
-            this.parentMap = parentMap;
+            this.parentPlayer = parentPlayer;
+
+            this.blobName = new Label(parentPlayer.getUsername());
+            this.blobName.setFont(veraMono);
+
+            this.parentPane = new StackPane(blobName);
         }
 
-        public PlayerBlob(PlayerBlob playerBlob, ObservableMap<UUID, PlayerBlob> parentMap) {
+        public PlayerBlob(PlayerBlob playerBlob, Player parentPlayer) {
             this(
                 playerBlob.x, playerBlob.y, playerBlob.vx, playerBlob.vy, playerBlob.ax, playerBlob.ay,
                 playerBlob.mass.get(), playerBlob.hasSplitSpeedBoost,
                 playerBlob.getFill(), playerBlob.game, playerBlob.parentUUID, playerBlob.uuid,
-                parentMap
+                parentPlayer
             );
         }
 
@@ -100,8 +112,18 @@ public class Player {
         }
 
         @Override
+        public void addToPane() {
+            game.getChildren().add(parentPane);
+        }
+
+        @Override
+        public void removeFromPane() {
+            game.getChildren().remove(parentPane);
+        }
+
+        @Override
         public void removeFromMap() {
-            parentMap.remove(uuid);
+            parentPlayer.playerBlobs.remove(uuid);
         }
 
         public void positionTick(MouseEvent mouseEvent) {
@@ -188,13 +210,13 @@ public class Player {
             super.updatePhysics(blob);
         }
 
-        public static PlayerBlob fromJSON(JSONObject data, Game game, ObservableMap<UUID, PlayerBlob> parentMap) {
+        public static PlayerBlob fromJSON(JSONObject data, Game game, Player parentPlayer) {
             return new PlayerBlob(
                 data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
                 data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
                 data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
                 game, UUID.fromString(data.getString("parent_uuid")), UUID.fromString(data.getString("uuid")),
-                parentMap
+                parentPlayer
             );
         }
     }
@@ -212,7 +234,13 @@ public class Player {
 
     protected Player physicsUpdate;
 
-    protected Player(Game game, UUID uuid, JSONArray playerBlobs) {
+    final protected String username;
+
+    protected Player(Game game, UUID uuid, String username, JSONArray playerBlobs) {
+        this.game = game;
+
+        this.username = username;
+
         this.uuid = uuid;
         this.playerBlobs = FXCollections.observableHashMap();
 
@@ -244,14 +272,12 @@ public class Player {
         });
 
         for (int i = 0; i < playerBlobs.length(); ++i) {
-            PlayerBlob playerBlob = PlayerBlob.fromJSON(playerBlobs.getJSONObject(i), game, this.playerBlobs);
+            PlayerBlob playerBlob = PlayerBlob.fromJSON(playerBlobs.getJSONObject(i), game, this);
             this.playerBlobs.put(playerBlob.uuid, playerBlob);
         }
 
         this.mouseEvent = null;
         this.keyEvents = new HashMap<>();
-
-        this.game = game;
     }
 
     public void removeFromPane() {
@@ -367,7 +393,7 @@ public class Player {
 
             physicsUpdate.playerBlobs.values().forEach(blob -> {
                 if (!playerBlobs.containsKey(blob.uuid)) {
-                    playerBlobs.put(blob.uuid, new PlayerBlob(blob, playerBlobs));
+                    playerBlobs.put(blob.uuid, new PlayerBlob(blob, this));
                 }
             });
 
@@ -388,10 +414,19 @@ public class Player {
         physicsUpdate = player;
     }
 
+    public String getUsername() {
+        return username.isBlank() ? "Unnamed blob" : username;
+    }
+
     public static Player fromJSON(JSONObject data, Game game) {
         JSONArray playerBlobsData = data.getJSONArray("player_blobs");
 
-        return new Player(game, UUID.fromString(data.getString("uuid")), playerBlobsData);
+        return new Player(
+            game,
+            UUID.fromString(data.getString("uuid")),
+            data.getString("username"),
+            playerBlobsData
+        );
     }
 
 }
