@@ -4,6 +4,7 @@ import ceccs.game.objects.Heartbeat;
 import ceccs.game.panes.game.Overlay;
 import ceccs.game.panes.game.Game;
 import ceccs.network.NetworkHandler;
+import ceccs.network.data.IdentifyPacket;
 import ceccs.network.data.RegisterPacket;
 import ceccs.utils.Configurations;
 import ceccs.utils.InternalException;
@@ -23,6 +24,8 @@ public class Client extends Application {
 
     final public static double screenWidth;
     final public static double screenHeight;
+
+    final private static Configurations configs = Configurations.shared;
 
     final public static StackPane main;
     private static Game game;
@@ -53,11 +56,10 @@ public class Client extends Application {
     public void start(Stage primaryStage) throws Exception {
         InetSocketAddress server = getServer();
 
-        Configurations.shared.setProperty("server.ip", server.getHostString());
-        Configurations.shared.setProperty("server.port", String.valueOf(server.getPort()));
+        IdentifyPacket identifyPacket = new IdentifyPacket(getUsername(), Client.screenWidth, Client.screenHeight);
 
         game = new Game();
-        networkHandler = new NetworkHandler(server, game);
+        networkHandler = new NetworkHandler(identifyPacket, server, game);
 
         System.out.println("attempting to connect to " + server.getAddress() + ":" + server.getPort());
 
@@ -98,7 +100,7 @@ public class Client extends Application {
         game.load();
 
         System.out.println("creating overlay");
-        Overlay overlay = new Overlay(game.getSelfPlayer());
+        Overlay overlay = new Overlay(game);
 
         main.getChildren().addAll(game, overlay);
 
@@ -164,6 +166,17 @@ public class Client extends Application {
 
         Scanner scanner = new Scanner(System.in);
 
+        System.out.print("load previous server config? ([y]/n): ");
+
+        if (!scanner.nextLine().toLowerCase().contains("n") ) {
+            serverIp = configs.getProperty("server.ip");
+            serverPort = Integer.parseInt(configs.getProperty("server.port"));
+
+            System.out.println();
+
+            return new InetSocketAddress(serverIp, serverPort);
+        }
+
         while (serverIp.isEmpty()) {
             System.out.print("\nenter server ip: ");
 
@@ -182,7 +195,37 @@ public class Client extends Application {
 
         System.out.println();
 
+        configs.setProperty("server.ip", serverIp);
+        configs.setProperty("server.port", String.valueOf(serverPort));
+
         return new InetSocketAddress(serverIp, serverPort);
+    }
+
+    private String getUsername() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("load previous username? ([y]/n): ");
+
+        String username = "";
+
+        if (!scanner.nextLine().toLowerCase().contains("n") ) {
+            System.out.println();
+
+            username = configs.getProperty("client.player.username");
+
+            return username.substring(0, Math.min(username.length(), 15));
+        }
+
+        System.out.print("enter a username: ");
+
+        username = scanner.nextLine();
+        username = username.substring(0, Math.min(username.length(), 15));
+
+        System.out.println();
+
+        configs.setProperty("client.player.username", username);
+
+        return username;
     }
 
 }
