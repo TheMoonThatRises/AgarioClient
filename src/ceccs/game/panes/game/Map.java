@@ -2,6 +2,7 @@ package ceccs.game.panes.game;
 
 import ceccs.Client;
 import ceccs.game.objects.ui.Player;
+import ceccs.game.utilities.Utilities;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -13,8 +14,7 @@ public class Map extends Pane {
     final private Circle location;
 
     public Map(Player player) {
-        super.setBackground(Background.fill(Color.DARKGREY));
-        super.setOpacity(0.8);
+        super.setBackground(Background.fill(Utilities.opacityColor(Color.DARKGREY, 0.8)));
 
         this.mapDim = Client.screenHeight / 6;
 
