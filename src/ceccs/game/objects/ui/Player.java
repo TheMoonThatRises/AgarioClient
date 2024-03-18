@@ -1,5 +1,6 @@
 package ceccs.game.objects.ui;
 
+import ceccs.Client;
 import ceccs.game.utilities.Utilities;
 import ceccs.utils.InternalException;
 import ceccs.game.objects.BLOB_TYPES;
@@ -16,6 +17,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -69,7 +72,7 @@ public class Player {
 
         final protected Player parentPlayer;
 
-        final protected Label blobName;
+        final protected Text blobName;
 
         final protected StackPane parentPane;
 
@@ -91,10 +94,15 @@ public class Player {
 
             this.parentPlayer = parentPlayer;
 
-            this.blobName = new Label(parentPlayer.getUsername());
+            this.blobName = new Text(parentPlayer.getUsername());
             this.blobName.setFont(veraMono);
+            this.blobName.setBoundsType(TextBoundsType.VISUAL);
 
-            this.parentPane = new StackPane(blobName);
+            this.parentPane = new StackPane(this, blobName);
+
+            this.blobName.toFront();
+
+            super.setVisible(true);
         }
 
         public PlayerBlob(PlayerBlob playerBlob, Player parentPlayer) {
@@ -124,6 +132,10 @@ public class Player {
         @Override
         public void removeFromMap() {
             parentPlayer.playerBlobs.remove(uuid);
+        }
+
+        public void allToFront() {
+            parentPane.toFront();
         }
 
         public void positionTick(MouseEvent mouseEvent) {
@@ -183,6 +195,38 @@ public class Player {
 
             x += vx * velScale;
             y += vy * velScale;
+        }
+
+        @Override
+        public void animationTick() {
+            if (parentPane.getParent() == null) {
+                addToPane();
+            }
+
+            double relX = getRelativeX();
+            double relY = getRelativeY();
+            double relRadius = getPhysicsRadius() * game.camera.getCameraScale();
+
+            if (
+                relX + relRadius < -10 ||
+                relX - relRadius > Client.screenWidth + 10 ||
+                relY + relRadius < -10 ||
+                relY - relRadius > Client.screenHeight + 10 ||
+                relRadius < 0.5
+            ) {
+                if (parentPane.isVisible()) {
+                    parentPane.setVisible(false);
+                }
+
+                return;
+            } else if (!parentPane.isVisible()) {
+                parentPane.setVisible(true);
+            }
+
+            parentPane.setLayoutX(relX - parentPane.getWidth() / 2);
+            parentPane.setLayoutY(relY - parentPane.getHeight() / 2);
+
+            setRadius(relRadius);
         }
 
         @Override
@@ -290,7 +334,7 @@ public class Player {
             .filter(blob -> spike
                 ? blob.mass.greaterThanOrEqualTo(virusMass).get()
                 : blob.mass.lessThan(virusMass).get())
-            .forEach(PlayerBlob::toFront);
+            .forEach(PlayerBlob::allToFront);
     }
 
     public double getX() {
