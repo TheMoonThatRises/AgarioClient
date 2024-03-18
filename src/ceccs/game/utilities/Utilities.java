@@ -1,8 +1,36 @@
 package ceccs.game.utilities;
 
+import ceccs.Client;
 import ceccs.game.objects.ui.Blob;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+
+import java.io.IOException;
 
 public class Utilities {
+
+    final public static Font veraMono;
+
+    static {
+        Font customFont;
+
+        try {
+            customFont = Font.loadFont(
+                Client.class
+                    .getResource("/bitstream_vera_sans_mono/VeraMono.ttf")
+                    .openStream(),
+                15
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            System.out.println("unable to load custom font");
+
+            customFont = Font.font("Courier New", 15);
+        }
+
+        veraMono = customFont;
+    }
 
     public static double[] checkValues(Blob blob1, Blob blob2) {
         double xDist = blob2.getX() - blob1.getX();
@@ -53,6 +81,10 @@ public class Utilities {
             }
         }
         return idx;
+    }
+
+    public static Color opacityColor(Color color, double opacity) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
     }
 
 }
