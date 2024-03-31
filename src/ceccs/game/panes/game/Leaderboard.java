@@ -23,7 +23,7 @@ public class Leaderboard extends VBox {
         super.setBackground(Background.fill(Utilities.opacityColor(Color.DARKGREY, 0.8)));
         super.setPadding(new Insets(10));
 
-        this.leaderboardDim = Client.screenHeight * 2 / 9;
+        this.leaderboardDim = Client.screenHeight * 2 / 11;
 
         super.setMaxWidth(leaderboardDim);
         super.setMinWidth(leaderboardDim);
@@ -31,12 +31,12 @@ public class Leaderboard extends VBox {
         this.topTen = new Label[10];
 
         for (int i = 0; i < 10; ++i) {
-            this.topTen[i] = new Label(String.format("%d. ", i + 1));
+            this.topTen[i] = new Label("");
             this.topTen[i].setFont(Utilities.veraMono);
-            this.topTen[i].setTextFill(Color.WHITE);
+            this.topTen[i].setTextFill(Color.BLACK);
         }
 
-        Client.heartbeat.addRoutine(now -> {
+        Client.heartbeat.addRoutine(_ -> {
             ArrayList<Player> topTenPlayers = new ArrayList<> (
                 game.players.values()
                     .stream()
@@ -46,15 +46,13 @@ public class Leaderboard extends VBox {
 
             for (int i = 0; i < 10; ++i) {
                 if (i >= topTenPlayers.size()) {
-                    topTen[i].setText(String.format("%d. ", i + 1));
-
-                    topTen[i].setTextFill(Color.WHITE);
+                    topTen[i].setText("");
                 } else {
                     Player player = topTenPlayers.get(i);
 
                     topTen[i].setText(String.format("%d. %s", i + 1, player.getUsername()));
 
-                    topTen[i].setTextFill(player.uuid == game.getSelfPlayer().uuid ? Color.PINK : Color.WHITE);
+                    topTen[i].setTextFill(player.uuid == game.getSelfPlayer().uuid ? Color.PINK : Color.BLACK);
                 }
             }
         });
