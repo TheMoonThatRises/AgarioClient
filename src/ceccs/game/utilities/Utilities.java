@@ -19,14 +19,14 @@ public class Utilities {
                 Client.class
                     .getResource("/bitstream_vera_sans_mono/VeraMono.ttf")
                     .openStream(),
-                15
+                12
             );
         } catch (Exception e) {
             e.printStackTrace();
 
             System.out.println("unable to load custom font");
 
-            customFont = Font.font("Courier New", 15);
+            customFont = Font.font("Courier New", 12);
         }
 
         veraMono = customFont;
