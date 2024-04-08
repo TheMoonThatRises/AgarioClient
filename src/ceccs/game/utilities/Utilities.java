@@ -5,8 +5,6 @@ import ceccs.game.objects.ui.Blob;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-import java.io.IOException;
-
 public class Utilities {
 
     final public static Font veraMono;
