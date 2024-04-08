@@ -1,10 +1,9 @@
 package ceccs.game.objects.ui;
 
 import ceccs.Client;
-import ceccs.game.utilities.Utilities;
-import ceccs.utils.InternalException;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.game.Game;
+import ceccs.utils.InternalException;
 import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
@@ -12,7 +11,6 @@ import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
-import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
@@ -26,11 +24,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static ceccs.utils.InternalException.checkSafeDivision;
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusMass;
 import static ceccs.game.utilities.Utilities.*;
+import static ceccs.utils.InternalException.checkSafeDivision;
 
 public class Player {
 
@@ -59,6 +58,9 @@ public class Player {
         protected double maxVx;
         protected double maxVy;
 
+        final protected ConcurrentLinkedQueue<Double> axForces;
+        final protected ConcurrentLinkedQueue<Double> ayForces;
+
         protected double relX;
         protected double relY;
 
@@ -76,11 +78,14 @@ public class Player {
 
         final protected StackPane parentPane;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, Player parentPlayer) {
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, ConcurrentLinkedQueue<Double> axForces, ConcurrentLinkedQueue<Double> ayForces, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, Player parentPlayer) {
             super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
 
             this.maxVx = 0;
             this.maxVy = 0;
+
+            this.axForces = axForces;
+            this.ayForces = ayForces;
 
             this.relX = 0;
             this.relY = 0;
@@ -108,6 +113,7 @@ public class Player {
         public PlayerBlob(PlayerBlob playerBlob, Player parentPlayer) {
             this(
                 playerBlob.x, playerBlob.y, playerBlob.vx, playerBlob.vy, playerBlob.ax, playerBlob.ay,
+                playerBlob.axForces, playerBlob.ayForces,
                 playerBlob.mass.get(), playerBlob.hasSplitSpeedBoost,
                 playerBlob.getFill(), playerBlob.game, playerBlob.parentUUID, playerBlob.uuid,
                 parentPlayer
@@ -159,23 +165,26 @@ public class Player {
                 return;
             }
 
-            ax = maxVx < 0
+            double axTrue = maxVx < 0
                 ? -Math.abs(ax)
                 : Math.abs(ax);
-            ay = maxVy < 0
+            double ayTrue = maxVy < 0
                 ? -Math.abs(ay)
                 : Math.abs(ay);
 
             vx = (
                 Math.abs(vx) < Math.abs(maxVx)
-                    ? vx + ax
+                    ? vx + axTrue
                     : maxVx
             );
             vy = (
                 Math.abs(vy) < Math.abs(maxVy)
-                    ? vy + ay
+                    ? vy + ayTrue
                     : maxVy
             );
+
+            vx += axForces.stream().reduce(0.0, Double::sum);
+            vy += ayForces.stream().reduce(0.0, Double::sum);
 
             if (hasSplitSpeedBoost) {
                 splitBoostVelocity -= playerSplitDecay;
@@ -195,6 +204,9 @@ public class Player {
 
             x += vx * velScale;
             y += vy * velScale;
+
+            axForces.clear();
+            ayForces.clear();
         }
 
         @Override
@@ -234,6 +246,13 @@ public class Player {
             if (this.physicsUpdate != null) {
                 maxVx = physicsUpdate.maxVx;
                 maxVy = physicsUpdate.maxVy;
+
+                axForces.clear();
+                ayForces.clear();
+
+                axForces.addAll(physicsUpdate.axForces);
+                ayForces.addAll(physicsUpdate.ayForces);
+
                 hasSplitSpeedBoost = physicsUpdate.hasSplitSpeedBoost;
                 splitBoostVelocity = physicsUpdate.splitBoostVelocity;
 
@@ -255,9 +274,26 @@ public class Player {
         }
 
         public static PlayerBlob fromJSON(JSONObject data, Game game, Player parentPlayer) {
+            ConcurrentLinkedQueue<Double> axForces = new ConcurrentLinkedQueue<>(
+                data.getJSONArray("ax_forces")
+                    .toList()
+                    .stream()
+                    .map(value -> Double.valueOf(value.toString()))
+                    .toList()
+            );
+            ConcurrentLinkedQueue<Double> ayForces = new ConcurrentLinkedQueue<>(
+                data.getJSONArray("ay_forces")
+                    .toList()
+                    .stream()
+                    .map(value -> Double.valueOf(value.toString()))
+                    .toList()
+            );
+
             return new PlayerBlob(
                 data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
-                data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
+                data.getDouble("ax"), data.getDouble("ay"),
+                axForces, ayForces,
+                data.getDouble("mass"),
                 data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
                 game, UUID.fromString(data.getString("parent_uuid")), UUID.fromString(data.getString("uuid")),
                 parentPlayer
@@ -401,14 +437,12 @@ public class Player {
                             checkBlob.removeFromPane();
                             checkBlob.removeFromMap();
                         }
-                    } else if (
-                        checkTouch(playerBlob, checkBlob) &&
-                        checkBlob.mass.get() <= playerBlob.mass.get()
-                    ) {
-                        double[] pos = repositionBlob(playerBlob, checkBlob);
+                    } else if (checkTouch(playerBlob, checkBlob) || checkCollision(playerBlob, checkBlob)) {
+                        double collisionTheta = blobTheta(playerBlob, checkBlob);
+                        double collisionDelta = overlapDelta(playerBlob, checkBlob);
 
-                        checkBlob.setX(pos[0]);
-                        checkBlob.setY(pos[1]);
+                        checkBlob.axForces.add(collisionDelta * Math.cos(collisionTheta));
+                        checkBlob.ayForces.add(collisionDelta * Math.sin(collisionTheta));
                     }
                 }
             }
