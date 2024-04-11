@@ -33,7 +33,7 @@ public class Heartbeat extends AnimationTimer {
 
     @Override
     public void handle(long now) {
-        if (now - prevTime < 500_000_000 / Client.registerPacket.maxFramerate()) {
+        if (now - prevTime < 1_000_000_000 / Client.registerPacket.maxFramerate()) {
             return;
         }
 
