@@ -61,6 +61,8 @@ public class Game extends Pane {
             Player thisPlayer = getSelfPlayer();
 
             if (thisPlayer == null) {
+                System.err.println("unable to find current player");
+
                 return;
             }
 
