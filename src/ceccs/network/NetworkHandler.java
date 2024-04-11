@@ -72,7 +72,7 @@ public class NetworkHandler {
                 try {
                     clientSocket.receive(inPacket);
 
-                    handleIncomingPacket(inPacket);
+                    new Thread(() -> handleIncomingPacket(inPacket)).start();
                 } catch (IOException exception) {
                     exception.printStackTrace();
 
