@@ -3,7 +3,6 @@ package ceccs.network;
 import ceccs.Client;
 import ceccs.game.panes.game.Game;
 import ceccs.network.data.*;
-import ceccs.network.utils.GZip;
 import ceccs.utils.InternalPathFinder;
 import javafx.application.Platform;
 import org.json.JSONObject;
@@ -22,7 +21,7 @@ public class NetworkHandler {
     final private long networkSampleTime;
     private long lastWrite;
 
-    final private static int pingInterval = 1_000;
+    final private static int pingInterval = 3_000;
 
     final private InetSocketAddress serverSocket;
 
@@ -37,8 +36,12 @@ public class NetworkHandler {
 
     final private Game game;
 
-    private long lastPing;
+    private long socketLastTps;
+    private static long socketTps = 0;
 
+    private static double serverTps = 0;
+
+    private long lastPing;
     private static long ping;
 
     private long timeoutSleep;
@@ -56,6 +59,8 @@ public class NetworkHandler {
 
         this.timeoutSleep = 1_000;
         this.lastPing = System.nanoTime();
+
+        this.socketLastTps = System.nanoTime();
 
         this.pingTimer = new Timer("server_ping_thread");
 
@@ -110,7 +115,7 @@ public class NetworkHandler {
 
     private void handleIncomingPacket(DatagramPacket packet) {
         try {
-            String received = new String(GZip.decompress(packet.getData()));
+            String received = new String(packet.getData());
             NetworkPacket networkPacket = NetworkPacket.fromString(received);
 
             if (lastWrite + networkSampleTime < System.nanoTime() || lastWrite == 0) {
@@ -133,12 +138,21 @@ public class NetworkHandler {
                         Client.registerPacket = RegisterPacket.fromJSON(networkPacket.data);
 
                         System.out.println("successfully connected to server");
-                        timeoutSleep = 1_000;
 
                         pingTimer.scheduleAtFixedRate(pingTask, pingInterval, pingInterval);
                     }
-                    case SERVER_PONG -> ping = System.nanoTime() - lastPing;
-                    case SERVER_GAME_STATE -> game.updateFromGameData(networkPacket.data);
+                    case SERVER_PONG -> {
+                        ping = System.nanoTime() - lastPing;
+
+                        serverTps = networkPacket.data.getDouble("tps");
+                    }
+                    case SERVER_GAME_STATE -> {
+                        socketTps = System.nanoTime() - socketLastTps;
+
+                        game.updateFromGameData(networkPacket.data);
+
+                        socketLastTps = System.nanoTime();
+                    }
                     case SERVER_TERMINATE -> {
                         Platform.exit();
                         System.exit(0);
@@ -193,22 +207,16 @@ public class NetworkHandler {
 
         NetworkPacket networkPacket = new NetworkPacket(op, data);
 
+        byte[] byteData = networkPacket.toJSON().toString().getBytes();
+
+        DatagramPacket packet = new DatagramPacket(byteData, byteData.length, serverSocket);
+
         try {
-            byte[] byteData = GZip.compress(networkPacket.toJSON().toString().getBytes());
-
-            DatagramPacket packet = new DatagramPacket(byteData, byteData.length, serverSocket);
-
-            try {
-                clientSocket.send(packet);
-            } catch (IOException exception) {
-                exception.printStackTrace();
-
-                System.err.println("failed to send packet to server");
-            }
+            clientSocket.send(packet);
         } catch (IOException exception) {
             exception.printStackTrace();
 
-            System.err.println("failed to compress packet");
+            System.err.println("failed to send packet to server");
         }
     }
 
@@ -228,8 +236,16 @@ public class NetworkHandler {
         handleWritePacket(OP_CODES.CLIENT_KEYBOARD_UPDATE, new KeyPacket(keycode, pressed).toJSON());
     }
 
-    public static long getPing() {
-        return ping;
+    public static double getSocketTps() {
+        return socketTps / 1_000_000.0;
+    }
+
+    public static double getServerTps() {
+        return serverTps;
+    }
+
+    public static double getPing() {
+        return ping / 1_000_000.0;
     }
 
 }
