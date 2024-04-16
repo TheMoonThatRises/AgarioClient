@@ -124,7 +124,8 @@ public class NetworkHandler {
                 lastWrite = System.nanoTime();
             }
 
-            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op);
+            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op());
+            JSONObject packetData = networkPacket.data();
 
             opcode.ifPresentOrElse(op -> {
                 if (op != OP_CODES.SERVER_IDENTIFY_OK && Client.registerPacket == null) {
@@ -135,7 +136,7 @@ public class NetworkHandler {
 
                 switch (op) {
                     case SERVER_IDENTIFY_OK -> {
-                        Client.registerPacket = RegisterPacket.fromJSON(networkPacket.data);
+                        Client.registerPacket = RegisterPacket.fromJSON(packetData);
 
                         System.out.println("successfully connected to server");
 
@@ -144,12 +145,12 @@ public class NetworkHandler {
                     case SERVER_PONG -> {
                         ping = System.nanoTime() - lastPing;
 
-                        serverTps = networkPacket.data.getDouble("tps");
+                        serverTps = packetData.getDouble("tps");
                     }
                     case SERVER_GAME_STATE -> {
                         socketTps = System.nanoTime() - socketLastTps;
 
-                        game.updateFromGameData(networkPacket.data);
+                        game.updateFromGameData(packetData);
 
                         socketLastTps = System.nanoTime();
                     }
@@ -172,7 +173,7 @@ public class NetworkHandler {
                     }
                     default -> System.out.println("unhandled op code: " + op);
                 }
-            }, () -> System.err.println("received unknown opcode: " + networkPacket.op));
+            }, () -> System.err.println("received unknown opcode: " + networkPacket.op()));
         } catch (IOException exception) {
             System.err.println("failed to decompress packet: " + exception);
         }
