@@ -3,6 +3,7 @@ package ceccs.game.objects.ui;
 import ceccs.Client;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.game.Game;
+import ceccs.network.utils.CustomID;
 import ceccs.utils.InternalException;
 import javafx.beans.binding.NumberBinding;
 import javafx.beans.property.DoubleProperty;
@@ -25,12 +26,11 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static ceccs.game.configs.PlayerConfigs.*;
 import static ceccs.game.configs.VirusConfigs.virusMass;
-import static ceccs.game.utilities.Utilities.*;
+import static ceccs.game.utils.Utilities.*;
 import static ceccs.utils.InternalException.checkSafeDivision;
 
 public class Player {
@@ -55,7 +55,7 @@ public class Player {
 
     protected static class PlayerBlob extends Blob {
 
-        final public UUID parentUUID;
+        final public CustomID parentUUID;
 
         protected double maxVx;
         protected double maxVy;
@@ -83,7 +83,7 @@ public class Player {
 
         final protected StackPane parentPane;
 
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, ConcurrentLinkedQueue<Double> axForces, ConcurrentLinkedQueue<Double> ayForces, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, UUID parentUUID, UUID uuid, Player parentPlayer) {
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, ConcurrentLinkedQueue<Double> axForces, ConcurrentLinkedQueue<Double> ayForces, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, CustomID parentUUID, CustomID uuid, Player parentPlayer) {
             super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
 
             this.maxVx = 0;
@@ -308,15 +308,15 @@ public class Player {
                 axForces, ayForces,
                 data.getDouble("mass"),
                 data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
-                game, UUID.fromString(data.getString("parent_uuid")), UUID.fromString(data.getString("uuid")),
+                game, CustomID.fromString(data.getString("parent_uuid")), CustomID.fromString(data.getString("uuid")),
                 parentPlayer
             );
         }
     }
 
-    final public UUID uuid;
+    final public CustomID uuid;
 
-    final protected ObservableMap<UUID, PlayerBlob> playerBlobs;
+    final protected ObservableMap<CustomID, PlayerBlob> playerBlobs;
     protected DoubleProperty totalMass;
     protected NumberBinding massBinding;
 
@@ -329,7 +329,7 @@ public class Player {
 
     final protected String username;
 
-    protected Player(Game game, UUID uuid, String username, JSONArray playerBlobs) {
+    protected Player(Game game, CustomID uuid, String username, JSONArray playerBlobs) {
         this.game = game;
 
         this.username = username;
@@ -349,7 +349,7 @@ public class Player {
             }
         };
 
-        this.playerBlobs.addListener((MapChangeListener<UUID, PlayerBlob>) change -> {
+        this.playerBlobs.addListener((MapChangeListener<CustomID, PlayerBlob>) change -> {
             totalMass.unbind();
             massBinding = null;
 
@@ -429,7 +429,7 @@ public class Player {
     }
 
     public void collisionTick(long time) {
-        ArrayList<UUID> uuidList = new ArrayList<>(playerBlobs.keySet());
+        ArrayList<CustomID> uuidList = new ArrayList<>(playerBlobs.keySet());
 
         for (int i = playerBlobs.size() - 1; i >= 0; --i) {
             PlayerBlob playerBlob = playerBlobs.get(uuidList.get(i));
@@ -476,7 +476,7 @@ public class Player {
 
     public void updatePhysicsDataTick() {
         if (physicsUpdate != null) {
-            ArrayList<UUID> uuidList = new ArrayList<>(playerBlobs.keySet());
+            ArrayList<CustomID> uuidList = new ArrayList<>(playerBlobs.keySet());
 
             for (int i = uuidList.size() - 1; i >= 0; --i) {
                 playerBlobs.get(uuidList.get(i)).updatePhysicsDataTick();
@@ -514,7 +514,7 @@ public class Player {
 
         return new Player(
             game,
-            UUID.fromString(data.getString("uuid")),
+            CustomID.fromString(data.getString("uuid")),
             data.getString("username"),
             playerBlobsData
         );
