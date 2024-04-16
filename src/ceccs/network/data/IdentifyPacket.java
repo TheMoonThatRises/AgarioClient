@@ -5,10 +5,10 @@ import org.json.JSONObject;
 public record IdentifyPacket(String username, double screenWidth, double screenHeight) {
 
     public JSONObject toJSON() {
-        return new JSONObject(String.format(
-                "{\"username\":\"%s\",\"screen_width\":%f,\"screen_height\":%f}",
-                username, screenWidth, screenHeight
-        ));
+        return new JSONObject()
+                .put("username", username)
+                .put("screen_width", screenWidth)
+                .put("screen_height", screenHeight);
     }
 
 }
