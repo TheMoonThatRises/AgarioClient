@@ -35,299 +35,15 @@ import static ceccs.utils.InternalException.checkSafeDivision;
 
 public class Player {
 
-    protected static class Cooldowns {
-        public long pellet;
-        public long split;
-        public long merge;
-
-        public Cooldowns() {
-            this.pellet = 0;
-            this.split = 0;
-            this.merge = 0;
-        }
-
-        public void updateCooldowns(Cooldowns cooldowns) {
-            this.pellet = cooldowns.pellet;
-            this.split = cooldowns.split;
-            this.merge = cooldowns.merge;
-        }
-    }
-
-    protected static class PlayerBlob extends Blob {
-
-        final public CustomID parentUUID;
-
-        protected double maxVx;
-        protected double maxVy;
-
-        final protected ConcurrentLinkedQueue<Double> axForces;
-        final protected ConcurrentLinkedQueue<Double> ayForces;
-
-        protected double relX;
-        protected double relY;
-
-        protected boolean hasSplitSpeedBoost;
-
-        protected double splitBoostVelocity;
-
-        final protected Cooldowns cooldowns;
-
-        protected PlayerBlob physicsUpdate;
-
-        final protected Player parentPlayer;
-
-        final protected Text blobName;
-        final protected Text massText;
-
-        final protected VBox blobLabel;
-
-        final protected StackPane parentPane;
-
-        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, ConcurrentLinkedQueue<Double> axForces, ConcurrentLinkedQueue<Double> ayForces, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, CustomID parentUUID, CustomID uuid, Player parentPlayer) {
-            super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
-
-            this.maxVx = 0;
-            this.maxVy = 0;
-
-            this.axForces = axForces;
-            this.ayForces = ayForces;
-
-            this.relX = 0;
-            this.relY = 0;
-
-            this.hasSplitSpeedBoost = hasSplitSpeedBoost;
-            this.splitBoostVelocity = playerSplitVelocity;
-
-            this.cooldowns = new Cooldowns();
-
-            this.parentUUID = parentUUID;
-
-            this.parentPlayer = parentPlayer;
-
-            this.blobName = new Text(parentPlayer.getUsername());
-            this.blobName.setFont(veraMono);
-            this.blobName.setBoundsType(TextBoundsType.VISUAL);
-
-            this.massText = new Text();
-            this.massText.setFont(veraMono);
-            this.massText.setBoundsType(TextBoundsType.VISUAL);
-            this.massText.textProperty().bind(massProperty().asString("%.2f"));
-
-            this.blobLabel = new VBox(10, blobName, massText);
-            this.blobLabel.setAlignment(Pos.CENTER);
-
-            this.parentPane = new StackPane(this, this.blobLabel);
-
-            this.blobLabel.toFront();
-
-            super.setVisible(true);
-        }
-
-        public PlayerBlob(PlayerBlob playerBlob, Player parentPlayer) {
-            this(
-                playerBlob.x, playerBlob.y, playerBlob.vx, playerBlob.vy, playerBlob.ax, playerBlob.ay,
-                playerBlob.axForces, playerBlob.ayForces,
-                playerBlob.mass.get(), playerBlob.hasSplitSpeedBoost,
-                playerBlob.getFill(), playerBlob.game, playerBlob.parentUUID, playerBlob.uuid,
-                parentPlayer
-            );
-        }
-
-        @Override
-        public BLOB_TYPES getType() {
-            return BLOB_TYPES.PLAYER;
-        }
-
-        @Override
-        public void addToPane() {
-            game.getChildren().add(parentPane);
-        }
-
-        @Override
-        public void removeFromPane() {
-            game.getChildren().remove(parentPane);
-        }
-
-        @Override
-        public void removeFromMap() {
-            parentPlayer.playerBlobs.remove(uuid);
-        }
-
-        public void allToFront() {
-            parentPane.toFront();
-        }
-
-        public void positionTick(MouseEvent mouseEvent) {
-            if (mouseEvent != null && !mouseEvent.isConsumed()) {
-                relX = mouseEvent.getX() - getRelativeX();
-                relY = mouseEvent.getY() - getRelativeY();
-
-                maxVx = playerVelocities[closestNumber(playerVelocities, relX / 1000)];
-                maxVy = playerVelocities[closestNumber(playerVelocities, relY / 1000)];
-            }
-
-            double velScale;
-
-            try {
-                velScale = calcVelocityModifier(mass.get());
-            } catch (InternalException exception) {
-                exception.printStackTrace();
-
-                System.err.println("mass is zero in position tick");
-
-                return;
-            }
-
-            double axTrue = maxVx < 0
-                ? -Math.abs(ax)
-                : Math.abs(ax);
-            double ayTrue = maxVy < 0
-                ? -Math.abs(ay)
-                : Math.abs(ay);
-
-            vx = (
-                Math.abs(vx) < Math.abs(maxVx)
-                    ? vx + axTrue
-                    : maxVx
-            );
-            vy = (
-                Math.abs(vy) < Math.abs(maxVy)
-                    ? vy + ayTrue
-                    : maxVy
-            );
-
-            vx += axForces.stream().reduce(0.0, Double::sum);
-            vy += ayForces.stream().reduce(0.0, Double::sum);
-
-            if (hasSplitSpeedBoost) {
-                splitBoostVelocity -= playerSplitDecay;
-
-                if (splitBoostVelocity <= 0) {
-                    hasSplitSpeedBoost = false;
-                } else {
-                    double delta = Math.atan2(relY, relX);
-
-                    double sVX = splitBoostVelocity * Math.cos(delta);
-                    double sVY = splitBoostVelocity * Math.sin(delta);
-
-                    vx += sVX;
-                    vy += sVY;
-                }
-            }
-
-            x += vx * velScale;
-            y += vy * velScale;
-
-            axForces.clear();
-            ayForces.clear();
-        }
-
-        @Override
-        public void animationTick() {
-            if (parentPane.getParent() == null) {
-                addToPane();
-            }
-
-            double relX = getRelativeX();
-            double relY = getRelativeY();
-            double relRadius = getPhysicsRadius() * game.camera.getCameraScale();
-
-            if (
-                relX + relRadius < -10 ||
-                relX - relRadius > Client.screenWidth + 10 ||
-                relY + relRadius < -10 ||
-                relY - relRadius > Client.screenHeight + 10 ||
-                relRadius < 0.5
-            ) {
-                if (parentPane.isVisible()) {
-                    parentPane.setVisible(false);
-                }
-
-                return;
-            } else if (!parentPane.isVisible()) {
-                parentPane.setVisible(true);
-            }
-
-            parentPane.setLayoutX(relX - parentPane.getWidth() / 2);
-            parentPane.setLayoutY(relY - parentPane.getHeight() / 2);
-
-            setRadius(relRadius);
-        }
-
-        @Override
-        public void updatePhysicsDataTick() {
-            if (this.physicsUpdate != null) {
-                maxVx = physicsUpdate.maxVx;
-                maxVy = physicsUpdate.maxVy;
-
-                axForces.clear();
-                ayForces.clear();
-
-                axForces.addAll(physicsUpdate.axForces);
-                ayForces.addAll(physicsUpdate.ayForces);
-
-                hasSplitSpeedBoost = physicsUpdate.hasSplitSpeedBoost;
-                splitBoostVelocity = physicsUpdate.splitBoostVelocity;
-
-                cooldowns.updateCooldowns(physicsUpdate.cooldowns);
-
-                super.updatePhysicsDataTick();
-
-                this.physicsUpdate = null;
-            } else {
-                removeFromPane();
-                removeFromMap();
-            }
-        }
-
-        public void updatePhysics(PlayerBlob blob) {
-            this.physicsUpdate = blob;
-
-            super.updatePhysics(blob);
-        }
-
-        public static PlayerBlob fromJSON(JSONObject data, Game game, Player parentPlayer) {
-            ConcurrentLinkedQueue<Double> axForces = new ConcurrentLinkedQueue<>(
-                data.getJSONArray("ax_forces")
-                    .toList()
-                    .stream()
-                    .map(value -> Double.valueOf(value.toString()))
-                    .toList()
-            );
-            ConcurrentLinkedQueue<Double> ayForces = new ConcurrentLinkedQueue<>(
-                data.getJSONArray("ay_forces")
-                    .toList()
-                    .stream()
-                    .map(value -> Double.valueOf(value.toString()))
-                    .toList()
-            );
-
-            return new PlayerBlob(
-                data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
-                data.getDouble("ax"), data.getDouble("ay"),
-                axForces, ayForces,
-                data.getDouble("mass"),
-                data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
-                game, CustomID.fromString(data.getString("parent_uuid")), CustomID.fromString(data.getString("uuid")),
-                parentPlayer
-            );
-        }
-    }
-
     final public CustomID uuid;
-
     final protected ObservableMap<CustomID, PlayerBlob> playerBlobs;
+    final protected HashMap<KeyCode, Boolean> keyEvents;
+    final protected Game game;
+    final protected String username;
     protected DoubleProperty totalMass;
     protected NumberBinding massBinding;
-
     protected MouseEvent mouseEvent;
-    final protected HashMap<KeyCode, Boolean> keyEvents;
-
-    final protected Game game;
-
     protected Player physicsUpdate;
-
-    final protected String username;
 
     protected Player(Game game, CustomID uuid, String username, JSONArray playerBlobs) {
         this.game = game;
@@ -373,17 +89,28 @@ public class Player {
         this.keyEvents = new HashMap<>();
     }
 
+    public static Player fromJSON(JSONObject data, Game game) {
+        JSONArray playerBlobsData = data.getJSONArray("player_blobs");
+
+        return new Player(
+                game,
+                CustomID.fromString(data.getString("uuid")),
+                data.getString("username"),
+                playerBlobsData
+        );
+    }
+
     public void removeFromPane() {
         playerBlobs.values().forEach(PlayerBlob::removeFromPane);
     }
 
     public void toFront(boolean spike) {
         playerBlobs.values()
-            .stream()
-            .filter(blob -> spike
-                ? blob.mass.greaterThanOrEqualTo(virusMass).get()
-                : blob.mass.lessThan(virusMass).get())
-            .forEach(PlayerBlob::allToFront);
+                .stream()
+                .filter(blob -> spike
+                        ? blob.mass.greaterThanOrEqualTo(virusMass).get()
+                        : blob.mass.lessThan(virusMass).get())
+                .forEach(PlayerBlob::allToFront);
     }
 
     public double getX() {
@@ -441,8 +168,8 @@ public class Player {
 
                 if (playerBlob.uuid != checkBlob.uuid) {
                     if (
-                        playerBlob.cooldowns.merge < time &&
-                        checkBlob.cooldowns.merge < time
+                            playerBlob.cooldowns.merge < time &&
+                                    checkBlob.cooldowns.merge < time
                     ) {
                         if (checkCollision(playerBlob, checkBlob)) {
                             playerBlob.mass.set(playerBlob.mass.get() + checkBlob.mass.get());
@@ -509,15 +236,272 @@ public class Player {
         return username.isBlank() ? "Unnamed blob" : username;
     }
 
-    public static Player fromJSON(JSONObject data, Game game) {
-        JSONArray playerBlobsData = data.getJSONArray("player_blobs");
+    protected static class Cooldowns {
+        public long pellet;
+        public long split;
+        public long merge;
 
-        return new Player(
-            game,
-            CustomID.fromString(data.getString("uuid")),
-            data.getString("username"),
-            playerBlobsData
-        );
+        public Cooldowns() {
+            this.pellet = 0;
+            this.split = 0;
+            this.merge = 0;
+        }
+
+        public void updateCooldowns(Cooldowns cooldowns) {
+            this.pellet = cooldowns.pellet;
+            this.split = cooldowns.split;
+            this.merge = cooldowns.merge;
+        }
+    }
+
+    protected static class PlayerBlob extends Blob {
+
+        final public CustomID parentUUID;
+        final protected ConcurrentLinkedQueue<Double> axForces;
+        final protected ConcurrentLinkedQueue<Double> ayForces;
+        final protected Cooldowns cooldowns;
+        final protected Player parentPlayer;
+        final protected Text blobName;
+        final protected Text massText;
+        final protected VBox blobLabel;
+        final protected StackPane parentPane;
+        protected double maxVx;
+        protected double maxVy;
+        protected double relX;
+        protected double relY;
+        protected boolean hasSplitSpeedBoost;
+        protected double splitBoostVelocity;
+        protected PlayerBlob physicsUpdate;
+
+        public PlayerBlob(double x, double y, double vx, double vy, double ax, double ay, ConcurrentLinkedQueue<Double> axForces, ConcurrentLinkedQueue<Double> ayForces, double mass, boolean hasSplitSpeedBoost, Paint fill, Game game, CustomID parentUUID, CustomID uuid, Player parentPlayer) {
+            super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, null);
+
+            this.maxVx = 0;
+            this.maxVy = 0;
+
+            this.axForces = axForces;
+            this.ayForces = ayForces;
+
+            this.relX = 0;
+            this.relY = 0;
+
+            this.hasSplitSpeedBoost = hasSplitSpeedBoost;
+            this.splitBoostVelocity = playerSplitVelocity;
+
+            this.cooldowns = new Cooldowns();
+
+            this.parentUUID = parentUUID;
+
+            this.parentPlayer = parentPlayer;
+
+            this.blobName = new Text(parentPlayer.getUsername());
+            this.blobName.setFont(veraMono);
+            this.blobName.setBoundsType(TextBoundsType.VISUAL);
+
+            this.massText = new Text();
+            this.massText.setFont(veraMono);
+            this.massText.setBoundsType(TextBoundsType.VISUAL);
+            this.massText.textProperty().bind(massProperty().asString("%.2f"));
+
+            this.blobLabel = new VBox(10, blobName, massText);
+            this.blobLabel.setAlignment(Pos.CENTER);
+
+            this.parentPane = new StackPane(this, this.blobLabel);
+
+            this.blobLabel.toFront();
+
+            super.setVisible(true);
+        }
+
+        public PlayerBlob(PlayerBlob playerBlob, Player parentPlayer) {
+            this(
+                    playerBlob.x, playerBlob.y, playerBlob.vx, playerBlob.vy, playerBlob.ax, playerBlob.ay,
+                    playerBlob.axForces, playerBlob.ayForces,
+                    playerBlob.mass.get(), playerBlob.hasSplitSpeedBoost,
+                    playerBlob.getFill(), playerBlob.game, playerBlob.parentUUID, playerBlob.uuid,
+                    parentPlayer
+            );
+        }
+
+        public static PlayerBlob fromJSON(JSONObject data, Game game, Player parentPlayer) {
+            ConcurrentLinkedQueue<Double> axForces = new ConcurrentLinkedQueue<>(
+                    data.getJSONArray("ax_forces")
+                            .toList()
+                            .stream()
+                            .map(value -> Double.valueOf(value.toString()))
+                            .toList()
+            );
+            ConcurrentLinkedQueue<Double> ayForces = new ConcurrentLinkedQueue<>(
+                    data.getJSONArray("ay_forces")
+                            .toList()
+                            .stream()
+                            .map(value -> Double.valueOf(value.toString()))
+                            .toList()
+            );
+
+            return new PlayerBlob(
+                    data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
+                    data.getDouble("ax"), data.getDouble("ay"),
+                    axForces, ayForces,
+                    data.getDouble("mass"),
+                    data.getBoolean("has_split_speed_boost"), Paint.valueOf(data.getString("fill")),
+                    game, CustomID.fromString(data.getString("parent_uuid")), CustomID.fromString(data.getString("uuid")),
+                    parentPlayer
+            );
+        }
+
+        @Override
+        public BLOB_TYPES getType() {
+            return BLOB_TYPES.PLAYER;
+        }
+
+        @Override
+        public void addToPane() {
+            game.getChildren().add(parentPane);
+        }
+
+        @Override
+        public void removeFromPane() {
+            game.getChildren().remove(parentPane);
+        }
+
+        @Override
+        public void removeFromMap() {
+            parentPlayer.playerBlobs.remove(uuid);
+        }
+
+        public void allToFront() {
+            parentPane.toFront();
+        }
+
+        public void positionTick(MouseEvent mouseEvent) {
+            if (mouseEvent != null && !mouseEvent.isConsumed()) {
+                relX = mouseEvent.getX() - getRelativeX();
+                relY = mouseEvent.getY() - getRelativeY();
+
+                maxVx = playerVelocities[closestNumber(playerVelocities, relX / 1000)];
+                maxVy = playerVelocities[closestNumber(playerVelocities, relY / 1000)];
+            }
+
+            double velScale;
+
+            try {
+                velScale = calcVelocityModifier(mass.get());
+            } catch (InternalException exception) {
+                exception.printStackTrace();
+
+                System.err.println("mass is zero in position tick");
+
+                return;
+            }
+
+            double axTrue = maxVx < 0
+                    ? -Math.abs(ax)
+                    : Math.abs(ax);
+            double ayTrue = maxVy < 0
+                    ? -Math.abs(ay)
+                    : Math.abs(ay);
+
+            vx = (
+                    Math.abs(vx) < Math.abs(maxVx)
+                            ? vx + axTrue
+                            : maxVx
+            );
+            vy = (
+                    Math.abs(vy) < Math.abs(maxVy)
+                            ? vy + ayTrue
+                            : maxVy
+            );
+
+            vx += axForces.stream().reduce(0.0, Double::sum);
+            vy += ayForces.stream().reduce(0.0, Double::sum);
+
+            if (hasSplitSpeedBoost) {
+                splitBoostVelocity -= playerSplitDecay;
+
+                if (splitBoostVelocity <= 0) {
+                    hasSplitSpeedBoost = false;
+                } else {
+                    double delta = Math.atan2(relY, relX);
+
+                    double sVX = splitBoostVelocity * Math.cos(delta);
+                    double sVY = splitBoostVelocity * Math.sin(delta);
+
+                    vx += sVX;
+                    vy += sVY;
+                }
+            }
+
+            x += vx * velScale;
+            y += vy * velScale;
+
+            axForces.clear();
+            ayForces.clear();
+        }
+
+        @Override
+        public void animationTick() {
+            if (parentPane.getParent() == null) {
+                addToPane();
+            }
+
+            double relX = getRelativeX();
+            double relY = getRelativeY();
+            double relRadius = getPhysicsRadius() * game.camera.getCameraScale();
+
+            if (
+                    relX + relRadius < -10 ||
+                            relX - relRadius > Client.screenWidth + 10 ||
+                            relY + relRadius < -10 ||
+                            relY - relRadius > Client.screenHeight + 10 ||
+                            relRadius < 0.5
+            ) {
+                if (parentPane.isVisible()) {
+                    parentPane.setVisible(false);
+                }
+
+                return;
+            } else if (!parentPane.isVisible()) {
+                parentPane.setVisible(true);
+            }
+
+            parentPane.setLayoutX(relX - parentPane.getWidth() / 2);
+            parentPane.setLayoutY(relY - parentPane.getHeight() / 2);
+
+            setRadius(relRadius);
+        }
+
+        @Override
+        public void updatePhysicsDataTick() {
+            if (this.physicsUpdate != null) {
+                maxVx = physicsUpdate.maxVx;
+                maxVy = physicsUpdate.maxVy;
+
+                axForces.clear();
+                ayForces.clear();
+
+                axForces.addAll(physicsUpdate.axForces);
+                ayForces.addAll(physicsUpdate.ayForces);
+
+                hasSplitSpeedBoost = physicsUpdate.hasSplitSpeedBoost;
+                splitBoostVelocity = physicsUpdate.splitBoostVelocity;
+
+                cooldowns.updateCooldowns(physicsUpdate.cooldowns);
+
+                super.updatePhysicsDataTick();
+
+                this.physicsUpdate = null;
+            } else {
+                removeFromPane();
+                removeFromMap();
+            }
+        }
+
+        public void updatePhysics(PlayerBlob blob) {
+            this.physicsUpdate = blob;
+
+            super.updatePhysics(blob);
+        }
     }
 
 }

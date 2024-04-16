@@ -17,33 +17,22 @@ import java.util.TimerTask;
 
 public class NetworkHandler {
 
+    final private static int pingInterval = 3_000;
+    private static long socketTps = 0;
+    private static double serverTps = 0;
+    private static long ping;
     final private InternalPathFinder networkLogger;
     final private long networkSampleTime;
-    private long lastWrite;
-
-    final private static int pingInterval = 3_000;
-
     final private InetSocketAddress serverSocket;
-
     final private DatagramSocket clientSocket;
-
     final private Thread serverThread;
-
     final private TimerTask pingTask;
     final private Timer pingTimer;
-
     final private IdentifyPacket identifyPacket;
-
     final private Game game;
-
+    private long lastWrite;
     private long socketLastTps;
-    private static long socketTps = 0;
-
-    private static double serverTps = 0;
-
     private long lastPing;
-    private static long ping;
-
     private long timeoutSleep;
 
     public NetworkHandler(IdentifyPacket identifyPacket, InetSocketAddress server, Game game) throws IOException {
@@ -111,6 +100,18 @@ public class NetworkHandler {
                 lastPing = System.nanoTime();
             }
         };
+    }
+
+    public static double getSocketTps() {
+        return socketTps / 1_000_000.0;
+    }
+
+    public static double getServerTps() {
+        return serverTps;
+    }
+
+    public static double getPing() {
+        return ping / 1_000_000.0;
     }
 
     private void handleIncomingPacket(DatagramPacket packet) {
@@ -235,18 +236,6 @@ public class NetworkHandler {
 
     public void writeKeyPacket(int keycode, boolean pressed) {
         handleWritePacket(OP_CODES.CLIENT_KEYBOARD_UPDATE, new KeyPacket(keycode, pressed).toJSON());
-    }
-
-    public static double getSocketTps() {
-        return socketTps / 1_000_000.0;
-    }
-
-    public static double getServerTps() {
-        return serverTps;
-    }
-
-    public static double getPing() {
-        return ping / 1_000_000.0;
     }
 
 }

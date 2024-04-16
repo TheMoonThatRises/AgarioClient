@@ -15,9 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Game extends Pane {
 
-    final public Camera camera;
-
     final public static double gridSpacing = 10;
+    final public Camera camera;
     final public ArrayList<GridItem> gridItems;
 
     final public ConcurrentHashMap<CustomID, Player> players;

@@ -83,27 +83,27 @@ public class Camera {
             vC += aC * 1 / (cameraScale / 300);
 
             cameraScale = aC < 0
-                ? Math.max(targetCameraScale, cameraScale + vC)
-                : Math.min(targetCameraScale, cameraScale + vC);
+                    ? Math.max(targetCameraScale, cameraScale + vC)
+                    : Math.min(targetCameraScale, cameraScale + vC);
         } else if (Math.abs(vC) > 0) {
             vC = 0;
         }
-    }
-
-    public void setX(double targetX) {
-        this.x = targetX;
-    }
-
-    public void setY(double targetY) {
-        this.y = targetY;
     }
 
     public double getX() {
         return x;
     }
 
+    public void setX(double targetX) {
+        this.x = targetX;
+    }
+
     public double getY() {
         return y;
+    }
+
+    public void setY(double targetY) {
+        this.y = targetY;
     }
 
 }

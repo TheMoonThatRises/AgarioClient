@@ -24,16 +24,11 @@ public class Client extends Application {
 
     final public static double screenWidth;
     final public static double screenHeight;
-
-    final private static Configurations configs = Configurations.shared;
-
     final public static StackPane main;
-    private static Game game;
-
     final public static Heartbeat heartbeat;
-
+    final private static Configurations configs = Configurations.shared;
     public static RegisterPacket registerPacket = null;
-
+    private static Game game;
     static private NetworkHandler networkHandler;
 
     static private boolean didMouseExit;
@@ -168,7 +163,7 @@ public class Client extends Application {
 
         System.out.print("load previous server config? ([y]/n): ");
 
-        if (!scanner.nextLine().toLowerCase().contains("n") ) {
+        if (!scanner.nextLine().toLowerCase().contains("n")) {
             serverIp = configs.getProperty("server.ip");
             serverPort = Integer.parseInt(configs.getProperty("server.port"));
 
@@ -208,7 +203,7 @@ public class Client extends Application {
 
         String username = "";
 
-        if (!scanner.nextLine().toLowerCase().contains("n") ) {
+        if (!scanner.nextLine().toLowerCase().contains("n")) {
             System.out.println();
 
             username = configs.getProperty("client.player.username");

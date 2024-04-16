@@ -12,15 +12,15 @@ public class Food extends Blob {
         super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, game.foods);
     }
 
+    public static Food fromBlob(Blob blob) {
+        return new Food(
+                blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
+        );
+    }
+
     @Override
     public BLOB_TYPES getType() {
         return BLOB_TYPES.FOOD;
-    }
-
-    public static Food fromBlob(Blob blob) {
-        return new Food(
-            blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
-        );
     }
 
 }

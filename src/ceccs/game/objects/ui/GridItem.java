@@ -52,14 +52,14 @@ public class GridItem extends Line {
         setStrokeWidth(relStrokeWidth);
 
         if (
-            (
-                relX1 == relX2 &&
-                (relX1 - relStrokeWidth < -10 || relX1 + relStrokeWidth > Client.screenWidth + 10)
-            ) ||
-            (
-                relY1 == relY2 &&
-                (relY1 - relStrokeWidth < -10 || relY1 + relStrokeWidth > Client.screenHeight + 10)
-            )
+                (
+                        relX1 == relX2 &&
+                                (relX1 - relStrokeWidth < -10 || relX1 + relStrokeWidth > Client.screenWidth + 10)
+                ) ||
+                        (
+                                relY1 == relY2 &&
+                                        (relY1 - relStrokeWidth < -10 || relY1 + relStrokeWidth > Client.screenHeight + 10)
+                        )
         ) {
             if (isVisible()) {
                 setVisible(false);

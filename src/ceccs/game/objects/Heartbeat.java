@@ -8,17 +8,11 @@ import java.util.ArrayList;
 public class Heartbeat extends AnimationTimer {
 
     private final long[] frameTimes = new long[100];
+    final private ArrayList<Routine> routines;
     private int frameTimeIndex = 0;
     private boolean arrayFilled = false;
-
     private double framerate;
     private long prevTime;
-
-    public interface Routine {
-        void routine(long now);
-    }
-
-    final private ArrayList<Routine> routines;
 
     public Heartbeat() {
         this.routines = new ArrayList<>();
@@ -57,6 +51,10 @@ public class Heartbeat extends AnimationTimer {
 
     public double getFramerate() {
         return framerate;
+    }
+
+    public interface Routine {
+        void routine(long now);
     }
 
 }
