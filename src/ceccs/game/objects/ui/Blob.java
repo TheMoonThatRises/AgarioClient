@@ -17,27 +17,21 @@ import java.util.AbstractMap;
 public class Blob extends Circle {
 
     final public CustomID uuid;
-
+    final protected double initialVx;
+    final protected double initialVy;
+    final protected DoubleProperty mass;
+    final protected Game game;
+    final protected AbstractMap<CustomID, ? extends Blob> parentMap;
     protected double x;
     protected double y;
     protected double vx;
     protected double vy;
     protected double ax;
     protected double ay;
-
-    final protected double initialVx;
-    final protected  double initialVy;
-
-    final protected DoubleProperty mass;
-
-    final protected Game game;
-
-    final protected AbstractMap<CustomID, ? extends Blob> parentMap;
-
     protected Blob physicsUpdate;
 
     public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap) {
-        super(x, y, Math.sqrt(mass/Math.PI), fill);
+        super(x, y, Math.sqrt(mass / Math.PI), fill);
 
         this.x = x;
         this.y = y;
@@ -72,6 +66,16 @@ public class Blob extends Circle {
 
         setCache(true);
         setCacheHint(CacheHint.SPEED);
+    }
+
+    public static Blob fromJSON(JSONObject data, Game game, AbstractMap<CustomID, ? extends Blob> parent) {
+        return new Blob(
+                data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
+                data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
+                Paint.valueOf(data.getString("fill")), game,
+                CustomID.fromString(data.getString("uuid")),
+                parent
+        );
     }
 
     public BLOB_TYPES getType() {
@@ -130,11 +134,11 @@ public class Blob extends Circle {
         double relRadius = getPhysicsRadius() * game.camera.getCameraScale();
 
         if (
-            relX + relRadius < -10 ||
-            relX - relRadius > Client.screenWidth + 10 ||
-            relY + relRadius < -10 ||
-            relY - relRadius > Client.screenHeight + 10 ||
-            relRadius < 0.5
+                relX + relRadius < -10 ||
+                        relX - relRadius > Client.screenWidth + 10 ||
+                        relY + relRadius < -10 ||
+                        relY - relRadius > Client.screenHeight + 10 ||
+                        relRadius < 0.5
         ) {
             if (isVisible()) {
                 setVisible(false);
@@ -163,12 +167,12 @@ public class Blob extends Circle {
         return x;
     }
 
-    public double getY() {
-        return y;
-    }
-
     public void setX(double x) {
         this.x = x;
+    }
+
+    public double getY() {
+        return y;
     }
 
     public void setY(double y) {
@@ -194,16 +198,6 @@ public class Blob extends Circle {
 
     public void updatePhysics(Blob blob) {
         this.physicsUpdate = blob;
-    }
-
-    public static Blob fromJSON(JSONObject data, Game game, AbstractMap<CustomID, ? extends Blob> parent) {
-        return new Blob(
-            data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
-            data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
-            Paint.valueOf(data.getString("fill")), game,
-            CustomID.fromString(data.getString("uuid")),
-            parent
-        );
     }
 
     public double getPhysicsRadius() {

@@ -12,15 +12,15 @@ public class Virus extends Blob {
         super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, game.viruses);
     }
 
-    @Override
-    public BLOB_TYPES getType() {
-        return BLOB_TYPES.SPIKE;
-    }
-
     public static Virus fromBlob(Blob blob) {
         return new Virus(
                 blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
         );
+    }
+
+    @Override
+    public BLOB_TYPES getType() {
+        return BLOB_TYPES.SPIKE;
     }
 
 }

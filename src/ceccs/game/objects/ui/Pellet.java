@@ -11,15 +11,15 @@ public class Pellet extends Blob {
         super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, game.pellets);
     }
 
+    public static Pellet fromBlob(Blob blob) {
+        return new Pellet(
+                blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
+        );
+    }
+
     @Override
     public BLOB_TYPES getType() {
         return BLOB_TYPES.PELLET;
-    }
-
-    public static Pellet fromBlob(Blob blob) {
-        return new Pellet(
-            blob.x, blob.y, blob.vx, blob.vy, blob.ax, blob.ay, blob.mass.get(), blob.getFill(), blob.game, blob.uuid
-        );
     }
 
 }

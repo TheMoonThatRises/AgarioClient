@@ -3,7 +3,7 @@ package ceccs.network.data;
 import ceccs.network.OP_CODES;
 import org.json.JSONObject;
 
-public record NetworkPacket(int op, JSONObject data)  {
+public record NetworkPacket(int op, JSONObject data) {
 
     public NetworkPacket(int op, JSONObject data) {
         this.op = op;
@@ -22,14 +22,14 @@ public record NetworkPacket(int op, JSONObject data)  {
         this(op, new JSONObject(data));
     }
 
-    public JSONObject toJSON() {
-        return new JSONObject(String.format("{\"op\":%d,\"data\":%s}", op, data.toString()));
-    }
-
     public static NetworkPacket fromString(String packet) {
         JSONObject object = new JSONObject(packet);
 
         return new NetworkPacket(object.getInt("op"), object.getJSONObject("data"));
+    }
+
+    public JSONObject toJSON() {
+        return new JSONObject(String.format("{\"op\":%d,\"data\":%s}", op, data.toString()));
     }
 
 }

@@ -37,11 +37,11 @@ public class Leaderboard extends VBox {
         }
 
         Client.heartbeat.addRoutine(_ -> {
-            ArrayList<Player> topTenPlayers = new ArrayList<> (
-                game.players.values()
-                    .stream()
-                    .sorted((pl1, pl2) -> (int) pl2.massProperty().subtract(pl1.massProperty()).get())
-                    .toList()
+            ArrayList<Player> topTenPlayers = new ArrayList<>(
+                    game.players.values()
+                            .stream()
+                            .sorted((pl1, pl2) -> (int) pl2.massProperty().subtract(pl1.massProperty()).get())
+                            .toList()
             );
 
             for (int i = 0; i < 10; ++i) {
