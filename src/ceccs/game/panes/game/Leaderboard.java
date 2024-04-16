@@ -2,7 +2,7 @@ package ceccs.game.panes.game;
 
 import ceccs.Client;
 import ceccs.game.objects.ui.Player;
-import ceccs.game.utilities.Utilities;
+import ceccs.game.utils.Utilities;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
