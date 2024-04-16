@@ -1,15 +1,27 @@
-package ceccs.game.utilities;
+package ceccs.game.utils;
 
 import ceccs.Client;
 import ceccs.game.objects.ui.Blob;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
+import java.util.Random;
+
 public class Utilities {
+
+    final private static boolean randomise = false;
+
+    final private static long seed = 3249871132234509L;
+
+    final public static Random random = new Random();
 
     final public static Font veraMono;
 
     static {
+        if (!randomise) {
+            random.setSeed(seed);
+        }
+
         Font customFont;
 
         try {

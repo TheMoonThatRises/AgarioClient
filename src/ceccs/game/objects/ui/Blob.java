@@ -3,6 +3,7 @@ package ceccs.game.objects.ui;
 import ceccs.Client;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.game.Game;
+import ceccs.network.utils.CustomID;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -12,11 +13,10 @@ import javafx.scene.shape.Circle;
 import org.json.JSONObject;
 
 import java.util.AbstractMap;
-import java.util.UUID;
 
 public class Blob extends Circle {
 
-    final public UUID uuid;
+    final public CustomID uuid;
 
     protected double x;
     protected double y;
@@ -32,11 +32,11 @@ public class Blob extends Circle {
 
     final protected Game game;
 
-    final protected AbstractMap<UUID, ? extends Blob> parentMap;
+    final protected AbstractMap<CustomID, ? extends Blob> parentMap;
 
     protected Blob physicsUpdate;
 
-    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid, AbstractMap<UUID, ? extends Blob> parentMap) {
+    public Blob(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, CustomID uuid, AbstractMap<CustomID, ? extends Blob> parentMap) {
         super(x, y, Math.sqrt(mass/Math.PI), fill);
 
         this.x = x;
@@ -196,12 +196,12 @@ public class Blob extends Circle {
         this.physicsUpdate = blob;
     }
 
-    public static Blob fromJSON(JSONObject data, Game game, AbstractMap<UUID, ? extends Blob> parent) {
+    public static Blob fromJSON(JSONObject data, Game game, AbstractMap<CustomID, ? extends Blob> parent) {
         return new Blob(
             data.getDouble("x"), data.getDouble("y"), data.getDouble("vx"), data.getDouble("vy"),
             data.getDouble("ax"), data.getDouble("ay"), data.getDouble("mass"),
             Paint.valueOf(data.getString("fill")), game,
-            UUID.fromString(data.getString("uuid")),
+            CustomID.fromString(data.getString("uuid")),
             parent
         );
     }

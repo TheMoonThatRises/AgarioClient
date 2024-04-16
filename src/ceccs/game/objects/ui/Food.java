@@ -2,14 +2,13 @@ package ceccs.game.objects.ui;
 
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.game.Game;
+import ceccs.network.utils.CustomID;
 import javafx.scene.paint.Paint;
-
-import java.util.UUID;
 
 public class Food extends Blob {
 
 
-    public Food(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, UUID uuid) {
+    public Food(double x, double y, double vx, double vy, double ax, double ay, double mass, Paint fill, Game game, CustomID uuid) {
         super(x, y, vx, vy, ax, ay, mass, fill, game, uuid, game.foods);
     }
 

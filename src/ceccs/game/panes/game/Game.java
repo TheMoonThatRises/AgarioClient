@@ -3,13 +3,13 @@ package ceccs.game.panes.game;
 import ceccs.Client;
 import ceccs.game.objects.Camera;
 import ceccs.game.objects.ui.*;
+import ceccs.network.utils.CustomID;
 import ceccs.utils.InternalException;
 import javafx.scene.layout.Pane;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -20,10 +20,10 @@ public class Game extends Pane {
     final public static double gridSpacing = 10;
     final public ArrayList<GridItem> gridItems;
 
-    final public ConcurrentHashMap<UUID, Player> players;
-    final public ConcurrentHashMap<UUID, Food> foods;
-    final public ConcurrentHashMap<UUID, Pellet> pellets;
-    final public ConcurrentHashMap<UUID, Virus> viruses;
+    final public ConcurrentHashMap<CustomID, Player> players;
+    final public ConcurrentHashMap<CustomID, Food> foods;
+    final public ConcurrentHashMap<CustomID, Pellet> pellets;
+    final public ConcurrentHashMap<CustomID, Virus> viruses;
 
     final private AtomicBoolean hasPhysicsUpdate;
 
