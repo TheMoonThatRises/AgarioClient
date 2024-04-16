@@ -103,7 +103,7 @@ public class NetworkHandler {
     }
 
     public static double getSocketTps() {
-        return socketTps / 1_000_000.0;
+        return 1_000.0 / (socketTps / 1_000_000.0);
     }
 
     public static double getServerTps() {
