@@ -17,10 +17,11 @@ import java.util.TimerTask;
 
 public class NetworkHandler {
 
-    final private static int pingInterval = 3_000;
+    final private static int pingInterval = 2_000;
+    private static JSONObject leaderboard = null;
     private static long socketTps = 0;
     private static double serverTps = 0;
-    private static long ping;
+    private static long ping = 0;
     final private InternalPathFinder networkLogger;
     final private long networkSampleTime;
     final private InetSocketAddress serverSocket;
@@ -114,6 +115,10 @@ public class NetworkHandler {
         return ping / 1_000_000.0;
     }
 
+    public static JSONObject getLeaderboard() {
+        return leaderboard;
+    }
+
     private void handleIncomingPacket(DatagramPacket packet) {
         try {
             String received = new String(packet.getData());
@@ -147,6 +152,8 @@ public class NetworkHandler {
                         ping = System.nanoTime() - lastPing;
 
                         serverTps = packetData.getDouble("tps");
+
+                        leaderboard = packetData.getJSONObject("leaderboard");
                     }
                     case SERVER_GAME_STATE -> {
                         socketTps = System.nanoTime() - socketLastTps;
