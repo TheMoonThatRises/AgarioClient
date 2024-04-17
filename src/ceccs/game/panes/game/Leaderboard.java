@@ -72,7 +72,7 @@ public class Leaderboard extends VBox {
                 }
 
                 if (!isInTop) {
-                    yourPos.setText("Your Position: " + leaderboard.getInt("position") + 1);
+                    yourPos.setText(String.format("Your Position: %d", leaderboard.getInt("position") + 1));
 
                     if (yourPos.getParent() == null) {
                         getChildren().add(yourPos);
