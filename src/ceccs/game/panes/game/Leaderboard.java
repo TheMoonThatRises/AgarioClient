@@ -90,6 +90,11 @@ public class Leaderboard extends VBox {
             }
         });
 
+        Label title = new Label("Leaderboard:");
+        title.setFont(Utilities.veraMono);
+        title.setTextFill(Color.WHITE);
+
+        super.getChildren().add(title);
         super.getChildren().addAll(topTen);
     }
 
