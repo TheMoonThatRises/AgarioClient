@@ -142,6 +142,8 @@ public class NetworkHandler {
 
                 switch (op) {
                     case SERVER_IDENTIFY_OK -> {
+                        timeoutSleep = 1_000;
+
                         Client.registerPacket = RegisterPacket.fromJSON(packetData);
 
                         System.out.println("successfully connected to server");
