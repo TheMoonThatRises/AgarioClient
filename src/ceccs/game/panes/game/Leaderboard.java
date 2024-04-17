@@ -59,8 +59,15 @@ public class Leaderboard extends VBox {
                         topTen[i].setText("");
                     } else {
                         JSONObject player = topPlayers.getJSONObject(i);
+                        String username = player.getString("username");
 
-                        this.topTen[i].setText(String.format("%d. %s", i + 1, player.getString("username")));
+                        this.topTen[i].setText(
+                                String.format(
+                                        "%d. %s",
+                                        i + 1,
+                                        username.isEmpty() ? "Unnamed blob" : username
+                                )
+                        );
 
                         if (player.getString("player_uuid").equals(this.game.getSelfPlayer().uuid.toString())) {
                             isInTop = true;
