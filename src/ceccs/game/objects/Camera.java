@@ -110,7 +110,7 @@ public class Camera {
     public void updateCamera(JSONObject camera) {
         this.x = camera.getDouble("x");
         this.y = camera.getDouble("y");
-        this.cameraScale = camera.getDouble("scale");
+        this.targetCameraScale = camera.getDouble("scale");
     }
 
 }
