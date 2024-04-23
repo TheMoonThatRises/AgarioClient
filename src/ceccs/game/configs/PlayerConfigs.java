@@ -5,7 +5,7 @@ import ceccs.utils.InternalException;
 public class PlayerConfigs {
 
     final static public double playerSplitVelocity = 4;
-    final static public double playerSplitDecay = 0.1;
+    final static public double playerSplitDecay = 0.08;
 
     final static public double[] playerVelocities = new double[]{
             -0.01, -0.05, -0.1, -0.2, -0.4, -0.5,
