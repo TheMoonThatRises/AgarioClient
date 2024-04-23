@@ -92,6 +92,8 @@ public class Player {
     public static Player fromJSON(JSONObject data, Game game) {
         JSONArray playerBlobsData = data.getJSONArray("player_blobs");
 
+        game.camera.updateCamera(data.getJSONObject("camera"));
+
         return new Player(
                 game,
                 CustomID.fromString(data.getString("uuid")),

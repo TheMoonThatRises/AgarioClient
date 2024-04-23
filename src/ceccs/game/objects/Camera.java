@@ -4,6 +4,7 @@ import ceccs.Client;
 import ceccs.utils.InternalException;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.scene.input.ScrollEvent;
+import org.json.JSONObject;
 
 public class Camera {
 
@@ -104,6 +105,12 @@ public class Camera {
 
     public void setY(double targetY) {
         this.y = targetY;
+    }
+
+    public void updateCamera(JSONObject camera) {
+        this.x = camera.getDouble("x");
+        this.y = camera.getDouble("y");
+        this.cameraScale = camera.getDouble("scale");
     }
 
 }
