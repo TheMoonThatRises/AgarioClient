@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,7 +55,11 @@ public class NetworkHandler {
 
         this.pingTimer = new Timer("server_ping_thread");
 
-        this.networkLogger = new InternalPathFinder(true, "logs", "network-samples.log");
+        this.networkLogger = new InternalPathFinder(
+                true,
+                "logs",
+                String.format("network-samples-%s.log", LocalDateTime.now())
+        );
         this.networkSampleTime = 15_000_000_000L;
         this.lastWrite = 0;
 
