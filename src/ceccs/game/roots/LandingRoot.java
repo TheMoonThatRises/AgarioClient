@@ -1,4 +1,4 @@
-package ceccs.game.scenes;
+package ceccs.game.roots;
 
 import ceccs.Client;
 import ceccs.game.SceneHandler;
@@ -6,19 +6,18 @@ import ceccs.game.utils.Utilities;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.IdentifyPacket;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.Pair;
 
 import java.net.InetSocketAddress;
 
-public class LandingScene extends Scene {
+public class LandingRoot extends StackPane {
 
     private static InetSocketAddress server = null;
     private static IdentifyPacket identifyPacket = null;
@@ -30,9 +29,7 @@ public class LandingScene extends Scene {
 
     final private Label errorLabel;
 
-    public LandingScene(Pane root) {
-        super(root);
-
+    public LandingRoot() {
         VBox vbox = new VBox();
 
         this.ipField = new TextField(Client.configs.getProperty("server.ip", "127.0.0.1"));
@@ -74,8 +71,10 @@ public class LandingScene extends Scene {
 
             server = new InetSocketAddress(ip, port);
 
-            if (!NetworkHandler.verifyServer(server)) {
-                errorLabel.setText("failed to reach server");
+            Pair<Boolean, String> serverVerification = NetworkHandler.verifyServer(server);
+
+            if (!serverVerification.getKey()) {
+                errorLabel.setText(serverVerification.getValue());
 
                 errorLabel.setVisible(true);
 
@@ -88,13 +87,13 @@ public class LandingScene extends Scene {
         });
 
         vbox.getChildren().addAll(
-                new HBox(ipLabel, ipField),
-                new HBox(portLabel, portField),
-                new HBox(usernameLabel, usernameField),
-                new HBox(goButton, errorLabel)
+                new HBox(5, ipLabel, ipField),
+                new HBox(5, portLabel, portField),
+                new HBox(5, usernameLabel, usernameField),
+                new HBox(5, goButton, errorLabel)
         );
 
-        root.getChildren().add(vbox);
+        this.getChildren().add(vbox);
         StackPane.setAlignment(vbox, Pos.CENTER);
     }
 

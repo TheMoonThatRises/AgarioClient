@@ -1,6 +1,6 @@
 package ceccs.game.objects;
 
-import ceccs.game.scenes.GameScene;
+import ceccs.game.roots.GameRoot;
 import javafx.animation.AnimationTimer;
 
 import java.util.HashMap;
@@ -31,8 +31,8 @@ public class Heartbeat extends AnimationTimer {
 
     @Override
     public void handle(long now) {
-        if (GameScene.registerPacket != null) {
-            if (now - prevTime < 1_000_000_000 / GameScene.registerPacket.maxFramerate()) {
+        if (GameRoot.registerPacket != null) {
+            if (now - prevTime < 1_000_000_000 / GameRoot.registerPacket.maxFramerate()) {
                 return;
             }
 

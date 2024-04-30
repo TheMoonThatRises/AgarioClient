@@ -2,7 +2,7 @@ package ceccs.game.panes.game;
 
 import ceccs.Client;
 import ceccs.game.objects.ui.Player;
-import ceccs.game.scenes.GameScene;
+import ceccs.game.roots.GameRoot;
 import ceccs.game.utils.Utilities;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
@@ -24,9 +24,9 @@ public class Map extends Pane {
 
         this.location = new Circle(mapDim / 100, Color.WHITE);
 
-        GameScene.heartbeat.addRoutine("map", _ -> {
-            this.location.setCenterX(player.getX() / GameScene.registerPacket.width() * mapDim);
-            this.location.setCenterY(player.getY() / GameScene.registerPacket.height() * mapDim);
+        GameRoot.heartbeat.addRoutine("map", _ -> {
+            this.location.setCenterX(player.getX() / GameRoot.registerPacket.width() * mapDim);
+            this.location.setCenterY(player.getY() / GameRoot.registerPacket.height() * mapDim);
         });
 
         super.getChildren().add(this.location);

@@ -1,4 +1,4 @@
-package ceccs.game.scenes;
+package ceccs.game.roots;
 
 import ceccs.game.objects.Heartbeat;
 import ceccs.game.panes.game.Game;
@@ -6,27 +6,21 @@ import ceccs.game.panes.game.Overlay;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.RegisterPacket;
 import ceccs.utils.InternalException;
-import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
 
-public class GameScene extends Scene {
+public class GameRoot extends StackPane {
 
     final public static Heartbeat heartbeat = new Heartbeat();
     public static RegisterPacket registerPacket = null;
-    final private Pane root;
     final private NetworkHandler networkHandler;
     final private Game game;
     private boolean didMouseExit;
     private boolean isEnabled;
 
-    public GameScene(Pane root) throws IOException {
-        super(root);
-
-        this.root = root;
-
+    public GameRoot() throws IOException {
         this.didMouseExit = false;
         this.isEnabled = false;
 
@@ -85,8 +79,8 @@ public class GameScene extends Scene {
     public void start() {
         System.out.println(
                 "attempting to connect to " +
-                        LandingScene.getServer().getAddress() + ":" +
-                        LandingScene.getServer().getPort()
+                        LandingRoot.getServer().getAddress() + ":" +
+                        LandingRoot.getServer().getPort()
         );
 
         networkHandler.identify();
@@ -121,7 +115,7 @@ public class GameScene extends Scene {
         System.out.println("creating overlay");
         Overlay overlay = new Overlay(game);
 
-        root.getChildren().addAll(game, overlay);
+        this.getChildren().addAll(game, overlay);
 
         System.out.println("creating game");
 
@@ -136,7 +130,7 @@ public class GameScene extends Scene {
 
         heartbeat.stop();
 
-        root.getChildren().clear();
+        this.getChildren().clear();
 
         networkHandler.terminate();
 

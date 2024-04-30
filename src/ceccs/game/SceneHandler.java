@@ -1,8 +1,8 @@
 package ceccs.game;
 
-import ceccs.game.scenes.GameScene;
-import ceccs.game.scenes.LandingScene;
-import javafx.scene.layout.StackPane;
+import ceccs.game.roots.GameRoot;
+import ceccs.game.roots.LandingRoot;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -10,19 +10,19 @@ import java.io.IOException;
 public class SceneHandler {
 
     final private Stage stage;
-    final private GameScene gameScene;
-    final private LandingScene landingScene;
+    final private GameRoot gameRoot;
+    final private LandingRoot landingRoot;
 
     public SceneHandler(Stage stage) throws IOException {
         this.stage = stage;
 
-        StackPane gameSceneMain = new StackPane();
-        this.gameScene = new GameScene(gameSceneMain);
+        this.gameRoot = new GameRoot();
 
-        StackPane landingSceneMain = new StackPane();
-        this.landingScene = new LandingScene(landingSceneMain);
+        this.landingRoot = new LandingRoot();
 
-        this.setScene(SCENES.LANDING);
+        Scene scene = new Scene(this.landingRoot);
+
+        this.stage.setScene(scene);
     }
 
     public void setScene(SCENES scene) {
@@ -31,17 +31,17 @@ public class SceneHandler {
 
         switch (scene) {
             case LANDING -> {
-                this.gameScene.stop();
+                this.gameRoot.stop();
 
-                stage.setScene(landingScene);
+                stage.getScene().setRoot(landingRoot);
             }
             case GAME -> {
-                stage.setScene(this.gameScene);
+                stage.getScene().setRoot(gameRoot);
 
-                this.gameScene.start();
+                this.gameRoot.start();
             }
             case END -> {
-                this.gameScene.stop();
+                this.gameRoot.stop();
             }
         }
     }

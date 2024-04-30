@@ -3,7 +3,7 @@ package ceccs.game.panes.game;
 import ceccs.Client;
 import ceccs.game.objects.Camera;
 import ceccs.game.objects.ui.*;
-import ceccs.game.scenes.GameScene;
+import ceccs.game.roots.GameRoot;
 import ceccs.network.utils.CustomID;
 import ceccs.utils.InternalException;
 import javafx.scene.layout.Pane;
@@ -47,8 +47,8 @@ public class Game extends Pane {
         this.hasPhysicsUpdate = new AtomicBoolean(false);
         this.updatingPhysics = new AtomicBoolean(false);
 
-        GameScene.heartbeat.addRoutine("game", now -> {
-            if (GameScene.registerPacket == null) {
+        GameRoot.heartbeat.addRoutine("game", now -> {
+            if (GameRoot.registerPacket == null) {
                 if (!players.isEmpty()) {
                     // TODO: overlay and camera are not updated
                     players.values().forEach(Player::removeFromPane);
@@ -112,16 +112,16 @@ public class Game extends Pane {
             throw new RuntimeException(exception);
         }
 
-        for (double x = 0; x <= GameScene.registerPacket.width(); x += gridSpacing) {
-            GridItem line = new GridItem(x, 0, x, GameScene.registerPacket.height(), this);
+        for (double x = 0; x <= GameRoot.registerPacket.width(); x += gridSpacing) {
+            GridItem line = new GridItem(x, 0, x, GameRoot.registerPacket.height(), this);
 
             gridItems.add(line);
 
             getChildren().add(line);
         }
 
-        for (double y = 0; y <= GameScene.registerPacket.height(); y += gridSpacing) {
-            GridItem line = new GridItem(0, y, GameScene.registerPacket.width(), y, this);
+        for (double y = 0; y <= GameRoot.registerPacket.height(); y += gridSpacing) {
+            GridItem line = new GridItem(0, y, GameRoot.registerPacket.width(), y, this);
 
             gridItems.add(line);
 
@@ -130,7 +130,7 @@ public class Game extends Pane {
     }
 
     public Player getSelfPlayer() {
-        return players.get(GameScene.registerPacket.playerUUID());
+        return players.get(GameRoot.registerPacket.playerUUID());
     }
 
     public void updateFromGameData(JSONObject data) {
