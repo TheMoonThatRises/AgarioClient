@@ -5,13 +5,13 @@ import ceccs.game.objects.ui.Blob;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class Utilities {
 
-    final public static Random random = new Random();
+    final public static SecureRandom random = new SecureRandom();
     final public static Font veraMono;
-    final private static boolean randomise = false;
+    final private static boolean randomise = true;
     final private static long seed = 3249871132234509L;
 
     static {
