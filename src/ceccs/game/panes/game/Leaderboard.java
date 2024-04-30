@@ -1,6 +1,7 @@
 package ceccs.game.panes.game;
 
 import ceccs.Client;
+import ceccs.game.scenes.GameScene;
 import ceccs.game.utils.Utilities;
 import ceccs.network.NetworkHandler;
 import javafx.geometry.Insets;
@@ -45,7 +46,7 @@ public class Leaderboard extends VBox {
             this.topTen[i].setTextFill(Color.BLACK);
         }
 
-        Client.heartbeat.addRoutine(_ -> {
+        GameScene.heartbeat.addRoutine("leaderboard", _ -> {
             JSONObject leaderboard = NetworkHandler.getLeaderboard();
 
             if (leaderboard != null && prevHash != leaderboard.hashCode()) {

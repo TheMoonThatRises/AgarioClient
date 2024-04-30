@@ -1,16 +1,22 @@
 package ceccs.network;
 
 import ceccs.Client;
+import ceccs.game.SceneHandler;
 import ceccs.game.panes.game.Game;
-import ceccs.network.data.*;
+import ceccs.game.scenes.GameScene;
+import ceccs.game.scenes.LandingScene;
+import ceccs.network.data.KeyPacket;
+import ceccs.network.data.MousePacket;
+import ceccs.network.data.NetworkPacket;
+import ceccs.network.data.RegisterPacket;
 import ceccs.utils.InternalPathFinder;
-import javafx.application.Platform;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Timer;
@@ -25,23 +31,17 @@ public class NetworkHandler {
     private static long ping = 0;
     final private InternalPathFinder networkLogger;
     final private long networkSampleTime;
-    final private InetSocketAddress serverSocket;
     final private DatagramSocket clientSocket;
     final private Thread serverThread;
     final private TimerTask pingTask;
-    final private Timer pingTimer;
-    final private IdentifyPacket identifyPacket;
     final private Game game;
+    private Timer pingTimer;
     private long lastWrite;
     private long socketLastTps;
     private long lastPing;
     private long timeoutSleep;
 
-    public NetworkHandler(IdentifyPacket identifyPacket, InetSocketAddress server, Game game) throws IOException {
-        this.serverSocket = server;
-
-        this.identifyPacket = identifyPacket;
-
+    public NetworkHandler(Game game) throws IOException {
         this.clientSocket = new DatagramSocket();
         this.clientSocket.setSoTimeout(pingInterval * 2);
         this.clientSocket.setTrafficClass(0x10);
@@ -78,7 +78,7 @@ public class NetworkHandler {
 
                     System.err.println("failed receiving incoming packet");
 
-                    if (Client.registerPacket == null) {
+                    if (GameScene.registerPacket == null) {
                         System.out.printf("re-identifying in %d seconds\n", timeoutSleep / 1_000);
 
                         try {
@@ -124,6 +124,69 @@ public class NetworkHandler {
         return leaderboard;
     }
 
+    public static boolean verifyServer(InetSocketAddress address) {
+        DatagramSocket tmpSocket;
+
+        try {
+            tmpSocket = new DatagramSocket();
+
+            tmpSocket.setSoTimeout(pingInterval * 2);
+            tmpSocket.setTrafficClass(0x10);
+        } catch (SocketException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to create datagram socket: " + exception);
+
+            return false;
+        }
+
+        NetworkPacket pingPacket = new NetworkPacket(OP_CODES.CLIENT_PING, new JSONObject("{}"));
+
+        byte[] byteData = pingPacket.toJSON().toString().getBytes();
+        DatagramPacket packet;
+
+        try {
+            packet = new DatagramPacket(byteData, byteData.length, address);
+        } catch (IllegalArgumentException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to create datagram packet: " + exception);
+
+            return false;
+        }
+
+        try {
+            tmpSocket.send(packet);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed to send packet to server: " + exception);
+
+            return false;
+        }
+
+        byte[] buf = new byte[65534];
+
+        DatagramPacket inPacket = new DatagramPacket(buf, buf.length);
+
+        try {
+            tmpSocket.receive(inPacket);
+
+            String received = new String(inPacket.getData());
+            NetworkPacket networkPacket = NetworkPacket.fromString(received);
+
+            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op());
+
+            return opcode.isPresent() && opcode.get() == OP_CODES.CLIENT_UNIDENTIFIED_ERROR;
+        } catch (IOException exception) {
+            exception.printStackTrace();
+
+            System.err.println("failed receiving incoming packet");
+        }
+
+        return false;
+    }
+
     private void handleIncomingPacket(DatagramPacket packet) {
         try {
             String received = new String(packet.getData());
@@ -139,7 +202,7 @@ public class NetworkHandler {
             JSONObject packetData = networkPacket.data();
 
             opcode.ifPresentOrElse(op -> {
-                if (op != OP_CODES.SERVER_IDENTIFY_OK && Client.registerPacket == null) {
+                if (op != OP_CODES.SERVER_IDENTIFY_OK && GameScene.registerPacket == null) {
                     System.err.println("received improper packet from server");
 
                     return;
@@ -149,10 +212,11 @@ public class NetworkHandler {
                     case SERVER_IDENTIFY_OK -> {
                         timeoutSleep = 1_000;
 
-                        Client.registerPacket = RegisterPacket.fromJSON(packetData);
+                        GameScene.registerPacket = RegisterPacket.fromJSON(packetData);
 
                         System.out.println("successfully connected to server");
 
+                        pingTimer = new Timer();
                         pingTimer.scheduleAtFixedRate(pingTask, pingInterval, pingInterval);
                     }
                     case SERVER_PONG -> {
@@ -169,14 +233,11 @@ public class NetworkHandler {
 
                         socketLastTps = System.nanoTime();
                     }
-                    case SERVER_TERMINATE -> {
-                        Platform.exit();
-                        System.exit(0);
-                    }
+                    case SERVER_TERMINATE -> Client.getSceneHandler().setScene(SceneHandler.SCENES.END);
                     case CLIENT_UNIDENTIFIED_ERROR -> {
                         System.err.println("client unidentified error received: server restarted?");
 
-                        Client.registerPacket = null;
+                        GameScene.registerPacket = null;
 
                         try {
                             Thread.sleep(500);
@@ -195,17 +256,17 @@ public class NetworkHandler {
     }
 
     public void identify() {
-        if (Client.registerPacket != null) {
+        if (GameScene.registerPacket != null) {
             System.err.println("already identified to server");
 
             return;
         }
 
-        handleWritePacket(OP_CODES.CLIENT_IDENTIFY, identifyPacket.toJSON());
+        handleWritePacket(OP_CODES.CLIENT_IDENTIFY, LandingScene.getIdentifyPacket().toJSON());
     }
 
     public void terminate() {
-        if (Client.registerPacket == null) {
+        if (GameScene.registerPacket == null) {
             System.err.println("cannot terminate without identifying first");
 
             return;
@@ -215,7 +276,7 @@ public class NetworkHandler {
     }
 
     private void handleWritePacket(OP_CODES op, JSONObject data) {
-        if (op != OP_CODES.CLIENT_IDENTIFY && Client.registerPacket == null) {
+        if (op != OP_CODES.CLIENT_IDENTIFY && GameScene.registerPacket == null) {
             System.err.println("register packet is null");
 
             return;
@@ -225,7 +286,7 @@ public class NetworkHandler {
 
         byte[] byteData = networkPacket.toJSON().toString().getBytes();
 
-        DatagramPacket packet = new DatagramPacket(byteData, byteData.length, serverSocket);
+        DatagramPacket packet = new DatagramPacket(byteData, byteData.length, LandingScene.getServer());
 
         try {
             clientSocket.send(packet);
@@ -242,6 +303,11 @@ public class NetworkHandler {
 
     public void start() {
         serverThread.start();
+    }
+
+    public void stop() {
+        serverThread.interrupt();
+        pingTimer.cancel();
     }
 
     public void writeMousePacket(double x, double y) {

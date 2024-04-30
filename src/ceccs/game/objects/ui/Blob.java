@@ -3,6 +3,7 @@ package ceccs.game.objects.ui;
 import ceccs.Client;
 import ceccs.game.objects.BLOB_TYPES;
 import ceccs.game.panes.game.Game;
+import ceccs.game.scenes.GameScene;
 import ceccs.network.utils.CustomID;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
@@ -110,16 +111,16 @@ public class Blob extends Circle {
         if (x - radius < 0) {
             x = radius;
             vx = 0;
-        } else if (x + radius > Client.registerPacket.width()) {
-            x = Client.registerPacket.width() - radius;
+        } else if (x + radius > GameScene.registerPacket.width()) {
+            x = GameScene.registerPacket.width() - radius;
             vx = 0;
         }
 
         if (y - radius < 0) {
             y = radius;
             vy = 0;
-        } else if (y + radius > Client.registerPacket.height()) {
-            y = Client.registerPacket.height() - radius;
+        } else if (y + radius > GameScene.registerPacket.height()) {
+            y = GameScene.registerPacket.height() - radius;
             vy = 0;
         }
     }

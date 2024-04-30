@@ -1,7 +1,7 @@
 package ceccs.game.panes.game;
 
-import ceccs.Client;
 import ceccs.game.objects.ui.Player;
+import ceccs.game.scenes.GameScene;
 import ceccs.game.utils.Utilities;
 import ceccs.network.NetworkHandler;
 import javafx.scene.control.Label;
@@ -31,8 +31,8 @@ public class Stats extends VBox {
 
         this.mass.textProperty().bind(player.massProperty().asString("mass: %.2f"));
 
-        Client.heartbeat.addRoutine(_ -> {
-            this.fps.setText(String.format("fps: %.2f", Client.heartbeat.getFramerate()));
+        GameScene.heartbeat.addRoutine("overlay", _ -> {
+            this.fps.setText(String.format("fps: %.2f", GameScene.heartbeat.getFramerate()));
             this.tps.setText(String.format("tps: %.2f, %.2f", NetworkHandler.getSocketTps(), NetworkHandler.getServerTps()));
             this.ping.setText(String.format("ping: %.2fms", NetworkHandler.getPing()));
             this.coordinate.setText(

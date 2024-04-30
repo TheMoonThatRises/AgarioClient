@@ -3,6 +3,7 @@ package ceccs.game.panes.game;
 import ceccs.Client;
 import ceccs.game.objects.Camera;
 import ceccs.game.objects.ui.*;
+import ceccs.game.scenes.GameScene;
 import ceccs.network.utils.CustomID;
 import ceccs.utils.InternalException;
 import javafx.scene.layout.Pane;
@@ -46,8 +47,8 @@ public class Game extends Pane {
         this.hasPhysicsUpdate = new AtomicBoolean(false);
         this.updatingPhysics = new AtomicBoolean(false);
 
-        Client.heartbeat.addRoutine(now -> {
-            if (Client.registerPacket == null) {
+        GameScene.heartbeat.addRoutine("game", now -> {
+            if (GameScene.registerPacket == null) {
                 if (!players.isEmpty()) {
                     // TODO: overlay and camera are not updated
                     players.values().forEach(Player::removeFromPane);
@@ -111,16 +112,16 @@ public class Game extends Pane {
             throw new RuntimeException(exception);
         }
 
-        for (double x = 0; x <= Client.registerPacket.width(); x += gridSpacing) {
-            GridItem line = new GridItem(x, 0, x, Client.registerPacket.height(), this);
+        for (double x = 0; x <= GameScene.registerPacket.width(); x += gridSpacing) {
+            GridItem line = new GridItem(x, 0, x, GameScene.registerPacket.height(), this);
 
             gridItems.add(line);
 
             getChildren().add(line);
         }
 
-        for (double y = 0; y <= Client.registerPacket.height(); y += gridSpacing) {
-            GridItem line = new GridItem(0, y, Client.registerPacket.width(), y, this);
+        for (double y = 0; y <= GameScene.registerPacket.height(); y += gridSpacing) {
+            GridItem line = new GridItem(0, y, GameScene.registerPacket.width(), y, this);
 
             gridItems.add(line);
 
@@ -129,7 +130,7 @@ public class Game extends Pane {
     }
 
     public Player getSelfPlayer() {
-        return players.get(Client.registerPacket.playerUUID());
+        return players.get(GameScene.registerPacket.playerUUID());
     }
 
     public void updateFromGameData(JSONObject data) {
@@ -218,6 +219,25 @@ public class Game extends Pane {
 
         updatingPhysics.set(false);
         hasPhysicsUpdate.set(true);
+    }
+
+    public void forceReload() {
+        getChildren().clear();
+
+        gridItems.clear();
+        players.clear();
+        pellets.clear();
+        viruses.clear();
+
+        while (getSelfPlayer() == null) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+
+        load();
     }
 
 }

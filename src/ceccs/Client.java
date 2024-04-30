@@ -1,22 +1,11 @@
 package ceccs;
 
-import ceccs.game.objects.Heartbeat;
-import ceccs.game.panes.game.Game;
-import ceccs.game.panes.game.Overlay;
-import ceccs.network.NetworkHandler;
-import ceccs.network.data.IdentifyPacket;
-import ceccs.network.data.RegisterPacket;
+import ceccs.game.SceneHandler;
 import ceccs.utils.Configurations;
-import ceccs.utils.InternalException;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-
-import java.net.InetSocketAddress;
-import java.util.Scanner;
 
 public class Client extends Application {
 
@@ -24,53 +13,27 @@ public class Client extends Application {
 
     final public static double screenWidth;
     final public static double screenHeight;
-    final public static StackPane main;
-    final public static Heartbeat heartbeat;
-    final private static Configurations configs = Configurations.shared;
-    public static RegisterPacket registerPacket = null;
-    private static Game game;
-    static private NetworkHandler networkHandler;
-
-    static private boolean didMouseExit;
+    final public static Configurations configs = Configurations.shared;
+    private static SceneHandler sceneHandler;
 
     static {
         screen = Screen.getPrimary().getVisualBounds();
         screenWidth = screen.getWidth();
         screenHeight = screen.getHeight();
-
-        main = new StackPane();
-
-        heartbeat = new Heartbeat();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    public static SceneHandler getSceneHandler() {
+        return sceneHandler;
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        InetSocketAddress server = getServer();
 
-        IdentifyPacket identifyPacket = new IdentifyPacket(getUsername(), Client.screenWidth, Client.screenHeight);
-
-        game = new Game();
-        networkHandler = new NetworkHandler(identifyPacket, server, game);
-
-        System.out.println("attempting to connect to " + server.getAddress() + ":" + server.getPort());
-
-        networkHandler.start();
-        networkHandler.identify();
-
-        System.out.println("waiting for server identify");
-
-        while (registerPacket == null) {
-            Thread.sleep(500);
-        }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> networkHandler.terminate()));
-        primaryStage.setOnCloseRequest(event -> System.exit(0));
-
-        System.out.println("server successful identification");
+        primaryStage.setOnCloseRequest(_ -> System.exit(0));
 
         primaryStage.setX(screen.getMinX());
         primaryStage.setY(screen.getMinY());
@@ -78,151 +41,12 @@ public class Client extends Application {
         primaryStage.setWidth(screenWidth);
         primaryStage.setHeight(screenHeight);
 
-        primaryStage.setFullScreen(true);
-
         primaryStage.setTitle("Agar.io");
         primaryStage.setResizable(false);
 
-        System.out.println("waiting for server population");
-
-        while (!game.players.containsKey(registerPacket.playerUUID())) {
-            Thread.sleep(500);
-        }
-
-        System.out.println("server successful population");
-
-        System.out.println("creating game");
-        game.load();
-
-        System.out.println("creating overlay");
-        Overlay overlay = new Overlay(game);
-
-        main.getChildren().addAll(game, overlay);
-
-        Scene scene = new Scene(main);
-        primaryStage.setScene(scene);
+        sceneHandler = new SceneHandler(primaryStage);
 
         primaryStage.show();
-
-        Thread.sleep(500);
-
-        didMouseExit = false;
-
-        scene.setOnMouseMoved(event -> {
-            if (didMouseExit) {
-                return;
-            }
-
-            networkHandler.writeMousePacket(event.getX(), event.getY());
-
-            if (registerPacket != null && game.getSelfPlayer() != null) {
-                game.getSelfPlayer().updateMouseEvent(event);
-            }
-        });
-        scene.setOnScroll(event -> {
-            if (didMouseExit) {
-                return;
-            }
-
-            try {
-                game.camera.updateScrollWheel(event);
-            } catch (InternalException exception) {
-                exception.printStackTrace();
-
-                System.err.println("player mass is zero?");
-            }
-        });
-        scene.setOnKeyPressed(event -> {
-            if (didMouseExit) {
-                return;
-            }
-
-            networkHandler.writeKeyPacket(event.getCode().getCode(), true);
-        });
-        scene.setOnKeyReleased(event -> {
-            if (didMouseExit) {
-                return;
-            }
-
-            networkHandler.writeKeyPacket(event.getCode().getCode(), false);
-        });
-
-        scene.setOnMouseExited(event -> didMouseExit = true);
-        scene.setOnMouseEntered(event -> didMouseExit = false);
-
-        heartbeat.start();
-
-        System.out.println("loading scene");
-    }
-
-    private InetSocketAddress getServer() {
-        String serverIp = "";
-        Integer serverPort = null;
-
-        Scanner scanner = new Scanner(System.in);
-
-        if (!configs.getProperty("server.ip").isEmpty() && !configs.getProperty("server.port").isEmpty()) {
-            System.out.print("load previous server config? ([y]/n): ");
-
-            if (!scanner.nextLine().toLowerCase().contains("n")) {
-                serverIp = configs.getProperty("server.ip");
-                serverPort = Integer.parseInt(configs.getProperty("server.port"));
-
-                System.out.println();
-
-                return new InetSocketAddress(serverIp, serverPort);
-            }
-        }
-
-        while (serverIp.isEmpty()) {
-            System.out.print("\nenter server ip: ");
-
-            serverIp = scanner.nextLine().trim();
-        }
-
-        while (serverPort == null) {
-            System.out.print("\nenter server port: ");
-
-            try {
-                serverPort = Integer.parseInt(scanner.nextLine().trim());
-            } catch (NumberFormatException exception) {
-                System.err.println("failed to parse server port input: " + exception);
-            }
-        }
-
-        System.out.println();
-
-        configs.setProperty("server.ip", serverIp);
-        configs.setProperty("server.port", String.valueOf(serverPort));
-
-        return new InetSocketAddress(serverIp, serverPort);
-    }
-
-    private String getUsername() {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("load previous username? ([y]/n): ");
-
-        String username = "";
-
-        if (!scanner.nextLine().toLowerCase().contains("n")) {
-            System.out.println();
-
-            username = configs.getProperty("client.player.username");
-
-            return username.substring(0, Math.min(username.length(), 15));
-        }
-
-        System.out.print("enter a username: ");
-
-        username = scanner.nextLine();
-        username = username.substring(0, Math.min(username.length(), 15));
-
-        System.out.println();
-
-        configs.setProperty("client.player.username", username);
-
-        return username;
     }
 
 }
