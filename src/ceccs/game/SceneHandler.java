@@ -3,6 +3,7 @@ package ceccs.game;
 import ceccs.game.roots.GameRoot;
 import ceccs.game.roots.LandingRoot;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -29,21 +30,57 @@ public class SceneHandler {
         stage.setFullScreen(true);
         stage.setMaximized(true);
 
+        Scene parentScene = stage.getScene();
+
         switch (scene) {
             case LANDING -> {
+                clearEvents();
+
                 this.gameRoot.stop();
 
-                stage.getScene().setRoot(landingRoot);
+                parentScene.setRoot(landingRoot);
             }
             case GAME -> {
-                stage.getScene().setRoot(gameRoot);
+                parentScene.setRoot(gameRoot);
+
+                setEvents(gameRoot);
 
                 this.gameRoot.start();
             }
             case END -> {
+                clearEvents();
+
                 this.gameRoot.stop();
             }
         }
+    }
+
+    private void setEvents(Pane pane) {
+        Scene parentScene = stage.getScene();
+
+        parentScene.setOnKeyPressed(pane.getOnKeyPressed());
+        parentScene.setOnKeyReleased(pane.getOnKeyReleased());
+        parentScene.setOnMouseMoved(pane.getOnMouseMoved());
+        parentScene.setOnMouseExited(pane.getOnMouseExited());
+        parentScene.setOnMouseEntered(pane.getOnMouseEntered());
+        parentScene.setOnScroll(pane.getOnScroll());
+    }
+
+    private void clearEvents() {
+        Scene parentScene = stage.getScene();
+
+        parentScene.setOnKeyPressed(_ -> {
+        });
+        parentScene.setOnKeyReleased(_ -> {
+        });
+        parentScene.setOnMouseMoved(_ -> {
+        });
+        parentScene.setOnMouseExited(_ -> {
+        });
+        parentScene.setOnMouseEntered(_ -> {
+        });
+        parentScene.setOnScroll(_ -> {
+        });
     }
 
     public enum SCENES {
