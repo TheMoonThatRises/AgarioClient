@@ -10,14 +10,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Pair;
 
 import java.net.InetSocketAddress;
 
-public class LandingRoot extends StackPane {
+public class LandingRoot extends HBox {
 
     private static InetSocketAddress server = null;
     private static IdentifyPacket identifyPacket = null;
@@ -93,8 +92,8 @@ public class LandingRoot extends StackPane {
                 new HBox(5, goButton, errorLabel)
         );
 
-        this.getChildren().add(vbox);
-        StackPane.setAlignment(vbox, Pos.CENTER);
+        super.setAlignment(Pos.CENTER);
+        super.getChildren().add(vbox);
     }
 
     public static InetSocketAddress getServer() {
