@@ -68,7 +68,7 @@ public class LandingRoot extends HBox {
         CheckBox qualityGraphics = new CheckBox("Quality Graphics");
         qualityGraphics.setSelected(
                 Boolean.parseBoolean(
-                    Client.configs.getProperty("client.settings.performance.graphics.quality", "false")
+                        Client.configs.getProperty("client.settings.performance.graphics.quality", "false")
                 )
         );
         qualityGraphics.selectedProperty().addListener((_, _, newValue) ->
