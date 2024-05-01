@@ -65,8 +65,10 @@ public class Blob extends Circle {
 
         setVisible(false);
 
-        setCache(true);
-        setCacheHint(CacheHint.SPEED);
+        boolean qualityGraphics = Boolean.parseBoolean(Client.configs.getProperty("client.settings.performance.graphics.quality", "false"));
+
+        setCache(qualityGraphics);
+        setCacheHint(qualityGraphics ? CacheHint.QUALITY : CacheHint.SPEED);
     }
 
     public static Blob fromJSON(JSONObject data, Game game, AbstractMap<CustomID, ? extends Blob> parent) {
