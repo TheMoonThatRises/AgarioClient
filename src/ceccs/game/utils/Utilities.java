@@ -4,8 +4,11 @@ import ceccs.Client;
 import ceccs.game.objects.ui.Blob;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Pair;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Utilities {
 
@@ -102,6 +105,14 @@ public class Utilities {
 
     public static Color opacityColor(Color color, double opacity) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), opacity);
+    }
+
+    private static String padHex(String hex, int endCount) {
+        if (hex.length() < endCount) {
+            hex = "0".repeat(endCount - hex.length()) + hex;
+        }
+
+        return hex;
     }
 
 }
