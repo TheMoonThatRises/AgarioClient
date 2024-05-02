@@ -6,6 +6,7 @@ import ceccs.game.utils.AddressCompress;
 import ceccs.game.utils.Utilities;
 import ceccs.network.NetworkHandler;
 import ceccs.network.data.IdentifyPacket;
+import ceccs.utils.InternalException;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -40,7 +41,7 @@ public class LandingRoot extends HBox {
         this.serverCode.setFont(Utilities.veraMono);
 
         this.serverCode.textProperty().addListener((_, oldValue, newValue) -> {
-            if (!Character.isLetterOrDigit(newValue.charAt(newValue.length() - 1))) {
+            if (!newValue.isEmpty() && !Character.isLetterOrDigit(newValue.charAt(newValue.length() - 1))) {
                 this.serverCode.setText(oldValue);
             }
         });
@@ -81,7 +82,17 @@ public class LandingRoot extends HBox {
             errorLabel.setVisible(false);
 
             String username = usernameField.getText();
-            Pair<String, Integer> address = AddressCompress.decodeAddress(serverCode.getText());
+            Pair<String, Integer> address;
+
+            try {
+                address = AddressCompress.decodeAddress(serverCode.getText());
+            } catch (InternalException exception) {
+                errorLabel.setText(exception.getMessage());
+
+                errorLabel.setVisible(true);
+
+                return;
+            }
 
             Client.configs.setProperty("client.player.username", username);
 
