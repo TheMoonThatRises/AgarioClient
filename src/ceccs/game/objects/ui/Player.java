@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static ceccs.game.configs.PlayerConfigs.*;
-import static ceccs.game.configs.VirusConfigs.virusMass;
 import static ceccs.game.utils.Utilities.*;
 import static ceccs.utils.InternalException.checkSafeDivision;
 
@@ -104,15 +103,6 @@ public class Player {
 
     public void removeFromPane() {
         playerBlobs.values().forEach(PlayerBlob::removeFromPane);
-    }
-
-    public void toFront(boolean spike) {
-        playerBlobs.values()
-                .stream()
-                .filter(blob -> spike
-                        ? blob.mass.greaterThanOrEqualTo(virusMass).get()
-                        : blob.mass.lessThan(virusMass).get())
-                .forEach(PlayerBlob::allToFront);
     }
 
     public double getX() {
@@ -238,6 +228,10 @@ public class Player {
         return username.isBlank() ? "Unnamed blob" : username;
     }
 
+    public ObservableMap<CustomID, PlayerBlob> getPlayerBlobs() {
+        return playerBlobs;
+    }
+
     protected static class Cooldowns {
         public long pellet;
         public long split;
@@ -256,7 +250,7 @@ public class Player {
         }
     }
 
-    protected static class PlayerBlob extends Blob {
+    public static class PlayerBlob extends Blob {
 
         final public CustomID parentUUID;
         final protected ConcurrentLinkedQueue<Double> axForces;
@@ -372,7 +366,8 @@ public class Player {
             parentPlayer.playerBlobs.remove(uuid);
         }
 
-        public void allToFront() {
+        @Override
+        public void toFront() {
             parentPane.toFront();
         }
 

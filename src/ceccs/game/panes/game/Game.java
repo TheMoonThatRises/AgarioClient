@@ -4,6 +4,7 @@ import ceccs.Client;
 import ceccs.game.objects.Camera;
 import ceccs.game.objects.ui.*;
 import ceccs.game.roots.GameRoot;
+import ceccs.game.utils.ConsolidateBlobs;
 import ceccs.network.utils.CustomID;
 import ceccs.utils.InternalException;
 import javafx.scene.layout.Pane;
@@ -11,8 +12,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class Game extends Pane {
 
@@ -97,9 +100,17 @@ public class Game extends Pane {
             players.values().forEach(Player::animationTick);
 
             pellets.values().forEach(Pellet::toFront);
-            players.values().forEach(player -> player.toFront(false));
-            viruses.values().forEach(Virus::toFront);
-            players.values().forEach(player -> player.toFront(true));
+            ConsolidateBlobs.convert(
+                            players.values()
+                                    .stream()
+                                    .flatMap(blob -> blob.getPlayerBlobs().entrySet().stream())
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                            viruses,
+                            pellets
+                    )
+                    .stream()
+                    .sorted((blob1, blob2) -> (int) blob1.massProperty().subtract(blob2.massProperty()).get())
+                    .forEach(Blob::toFront);
         });
     }
 
