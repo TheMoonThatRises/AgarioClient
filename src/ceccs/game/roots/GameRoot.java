@@ -79,7 +79,7 @@ public class GameRoot extends StackPane {
     public void start() {
         System.out.println(
                 "attempting to connect to " +
-                        LandingRoot.getServer().getAddress() + ":" +
+                        LandingRoot.getServer().getAddress().getHostAddress() + ":" +
                         LandingRoot.getServer().getPort()
         );
 
