@@ -65,13 +65,13 @@ public class AddressCompress {
         String addressNum = String.valueOf(decodeLong(encoded));
 
         if (addressNum.length() != 17) {
-            throw new InternalException("invalid server code");
+            throw new InternalException("invalid server code: decode address failed " + addressNum);
         }
 
         int port = Integer.parseInt(addressNum.substring(addressNum.length() - 5));
 
         if (port < 0 || port > 65535) {
-            throw new InternalException("invalid server code");
+            throw new InternalException("invalid server code: port out of range: " + port);
         }
 
         addressNum = addressNum.substring(0, addressNum.length() - 5);
@@ -84,7 +84,7 @@ public class AddressCompress {
             );
 
             if (ipPart < 0 || ipPart > 255) {
-                throw new InternalException("invalid server code");
+                throw new InternalException("invalid server code: ip section out of range: " + ipPart);
             }
 
             ipParts[(i / 3) - 1] = String.valueOf(ipPart);
