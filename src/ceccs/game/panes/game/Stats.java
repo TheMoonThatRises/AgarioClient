@@ -6,6 +6,7 @@ import ceccs.game.roots.GameRoot;
 import ceccs.game.roots.LandingRoot;
 import ceccs.game.utils.Utilities;
 import ceccs.network.NetworkHandler;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
@@ -36,6 +37,9 @@ public class Stats extends VBox {
 
         this.mass.textProperty().bind(player.massProperty().asString("mass: %.2f"));
         this.serverCode.setOnMousePressed(_ -> Client.copyToClipboard(serverCode.getText().split("\\s")[2]));
+
+        this.serverCode.setOnMouseEntered(_ -> setCursor(Cursor.HAND));
+        this.serverCode.setOnMouseExited(_ -> setCursor(Cursor.DEFAULT));
 
         GameRoot.heartbeat.addRoutine("overlay", _ -> {
             this.fps.setText(String.format("fps: %.2f", GameRoot.heartbeat.getFramerate()));
