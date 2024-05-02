@@ -138,7 +138,7 @@ public class NetworkHandler {
 
             System.err.println("failed to create datagram socket: " + exception);
 
-            return new Pair<>(false, exception.toString());
+            return new Pair<>(false, exception.getMessage());
         }
 
         NetworkPacket pingPacket = new NetworkPacket(OP_CODES.CLIENT_PING, new JSONObject("{}"));
@@ -153,7 +153,7 @@ public class NetworkHandler {
 
             System.err.println("failed to create datagram packet: " + exception);
 
-            return new Pair<>(false, exception.toString());
+            return new Pair<>(false, exception.getMessage());
         }
 
         try {
@@ -163,7 +163,7 @@ public class NetworkHandler {
 
             System.err.println("failed to send packet to server: " + exception);
 
-            return new Pair<>(false, exception.toString());
+            return new Pair<>(false, exception.getMessage());
         }
 
         byte[] buf = new byte[65534];
@@ -188,7 +188,7 @@ public class NetworkHandler {
 
             System.err.println("failed receiving incoming packet");
 
-            return new Pair<>(false, exception.toString());
+            return new Pair<>(false, exception.getMessage());
         }
     }
 
