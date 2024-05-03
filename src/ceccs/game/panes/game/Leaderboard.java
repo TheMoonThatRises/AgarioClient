@@ -60,7 +60,9 @@ public class Leaderboard extends VBox {
                         topTen[i].setText("");
                     } else {
                         JSONObject player = topPlayers.getJSONObject(i);
-                        String username = player.getString("username");
+                        String username = Boolean.parseBoolean(Client.configs.getProperty("client.settings.misc.username"))
+                                ? player.getString("username")
+                                : player.getString("player_uuid");
 
                         this.topTen[i].setText(
                                 String.format(
