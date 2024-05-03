@@ -11,6 +11,7 @@ public class Utilities {
 
     final public static SecureRandom random = new SecureRandom();
     final public static Font veraMono;
+    final public static Font veraMonoBold;
     final private static boolean randomise = true;
     final private static long seed = 3249871132234509L;
 
@@ -37,6 +38,27 @@ public class Utilities {
         }
 
         veraMono = customFont;
+
+        try {
+            customFont = Font.loadFont(
+                    Client.class
+                            .getResource("/bitstream_vera_sans_mono/VeraMono-Bold.ttf")
+                            .openStream(),
+                    12
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            System.out.println("unable to load custom font");
+
+            customFont = Font.font("Courier New Bold", 12);
+        }
+
+        veraMonoBold = customFont;
+    }
+
+    public static Font customVeraMono(int size) {
+        return new Font(veraMono.getName(), size);
     }
 
     public static double[] checkValues(Blob blob1, Blob blob2) {

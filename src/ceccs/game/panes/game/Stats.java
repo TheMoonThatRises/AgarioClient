@@ -54,7 +54,29 @@ public class Stats extends VBox {
             );
         });
 
-        super.getChildren().addAll(fps, mass, tps, ping, coordinate, serverCode);
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.fps"))) {
+            super.getChildren().add(fps);
+        }
+
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.mass"))) {
+            super.getChildren().add(mass);
+        }
+
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.tps"))) {
+            super.getChildren().add(tps);
+        }
+
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.ping"))) {
+            super.getChildren().add(ping);
+        }
+
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.coords"))) {
+            super.getChildren().add(coordinate);
+        }
+
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.servercode"))) {
+            super.getChildren().add(serverCode);
+        }
     }
 
 }

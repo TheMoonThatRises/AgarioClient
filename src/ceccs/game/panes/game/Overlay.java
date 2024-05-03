@@ -1,5 +1,6 @@
 package ceccs.game.panes.game;
 
+import ceccs.Client;
 import ceccs.game.objects.ui.Player;
 import javafx.geometry.Insets;
 import javafx.scene.layout.BorderPane;
@@ -22,11 +23,17 @@ public class Overlay extends BorderPane {
         BorderPane topRow = new BorderPane();
 
         topRow.setLeft(this.stats);
-        topRow.setRight(this.leaderboard);
+
+
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.misc.leaderboard"))) {
+            topRow.setRight(this.leaderboard);
+        }
 
         BorderPane bottomRow = new BorderPane();
 
-        bottomRow.setRight(this.map);
+        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.misc.map"))) {
+            bottomRow.setRight(this.map);
+        }
 
         super.setTop(topRow);
         super.setBottom(bottomRow);

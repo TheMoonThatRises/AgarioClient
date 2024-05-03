@@ -2,6 +2,7 @@ package ceccs.game.roots;
 
 import ceccs.Client;
 import ceccs.game.SceneHandler;
+import ceccs.game.panes.landing.SettingsCheckBox;
 import ceccs.game.utils.AddressCompress;
 import ceccs.game.utils.Utilities;
 import ceccs.network.NetworkHandler;
@@ -66,16 +67,6 @@ public class LandingRoot extends HBox {
         Label usernameLabel = new Label("Username:");
         usernameLabel.setFont(Utilities.veraMono);
 
-        CheckBox qualityGraphics = new CheckBox("Quality Graphics");
-        qualityGraphics.setSelected(
-                Boolean.parseBoolean(
-                        Client.configs.getProperty("client.settings.performance.graphics.quality", "false")
-                )
-        );
-        qualityGraphics.selectedProperty().addListener((_, _, newValue) ->
-                Client.configs.setProperty("client.settings.performance.graphics.quality", newValue.toString())
-        );
-
         Button goButton = new Button("Go");
         goButton.setFont(Utilities.veraMono);
         goButton.setOnAction(_ -> {
@@ -118,10 +109,84 @@ public class LandingRoot extends HBox {
             Client.getSceneHandler().setScene(SceneHandler.SCENES.GAME);
         });
 
+        SettingsCheckBox qualityGraphics = new SettingsCheckBox(
+                "Quality Graphics",
+                "client.settings.performance.graphics.quality",
+                "false"
+        );
+
+        SettingsCheckBox fpsSetting = new SettingsCheckBox(
+                "Show FPS",
+                "client.settings.stats.fps",
+                "false"
+        );
+        SettingsCheckBox massSetting = new SettingsCheckBox(
+                "Show mass",
+                "client.settings.stats.mass",
+                "false"
+        );
+        SettingsCheckBox tpsSetting = new SettingsCheckBox(
+                "Show TPS",
+                "client.settings.stats.tps",
+                "false"
+        );
+        SettingsCheckBox pingSetting = new SettingsCheckBox(
+                "Show ping",
+                "client.settings.stats.ping",
+                "true"
+        );
+        SettingsCheckBox coordsSetting = new SettingsCheckBox(
+                "Show coordinates",
+                "client.settings.stats.coords",
+                "false"
+        );
+        SettingsCheckBox serverCodeSetting = new SettingsCheckBox(
+                "Show server code",
+                "client.settings.stats.servercode",
+                "true"
+        );
+
+        SettingsCheckBox leaderboardSetting = new SettingsCheckBox(
+                "Show leaderboard",
+                "client.settings.misc.leaderboard",
+                "true"
+        );
+        SettingsCheckBox mapSetting = new SettingsCheckBox(
+                "Show map",
+                "client.settings.misc.map",
+                "true"
+        );
+
+        SettingsCheckBox usernameSetting = new SettingsCheckBox(
+                "Show usernames",
+                "client.settings.misc.username",
+                "true"
+        );
+
+        Label graphicsTitle = new Label("Graphics");
+        graphicsTitle.setFont(Utilities.veraMonoBold);
+
+        Label statsTitle = new Label("Stats");
+        statsTitle.setFont(Utilities.veraMonoBold);
+
+        Label miscTitle = new Label("Misc");
+        miscTitle.setFont(Utilities.veraMonoBold);
+
         vbox.getChildren().addAll(
                 new HBox(5, serverCodeLabel, serverCode),
                 new HBox(5, usernameLabel, usernameField),
+                graphicsTitle,
                 new VBox(5, qualityGraphics),
+                statsTitle,
+                new HBox(5,
+                        new VBox(5, fpsSetting, massSetting, tpsSetting),
+                        new VBox(5, pingSetting, coordsSetting, serverCodeSetting)
+                ),
+                miscTitle,
+                new HBox(5,
+                        new VBox(5, leaderboardSetting, mapSetting),
+                        new VBox(5, usernameSetting)
+                ),
                 new HBox(5, goButton, errorLabel)
         );
 
