@@ -94,7 +94,7 @@ public class Leaderboard extends VBox {
         });
 
         Label title = new Label("Leaderboard:");
-        title.setFont(Utilities.veraMono);
+        title.setFont(Utilities.veraMonoBold);
         title.setTextFill(Color.WHITE);
 
         super.getChildren().add(title);
