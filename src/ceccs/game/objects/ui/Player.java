@@ -252,6 +252,8 @@ public class Player {
 
     public static class PlayerBlob extends Blob {
 
+        final private static int labelFontSize = 15;
+
         final public CustomID parentUUID;
         final protected ConcurrentLinkedQueue<Double> axForces;
         final protected ConcurrentLinkedQueue<Double> ayForces;
@@ -291,11 +293,11 @@ public class Player {
             this.parentPlayer = parentPlayer;
 
             this.blobName = new Text(parentPlayer.getUsername());
-            this.blobName.setFont(veraMono);
+            this.blobName.setFont(customVeraMono((int) (labelFontSize * game.camera.getScrollScale())));
             this.blobName.setBoundsType(TextBoundsType.VISUAL);
 
             this.massText = new Text();
-            this.massText.setFont(veraMono);
+            this.massText.setFont(customVeraMono((int) (labelFontSize * game.camera.getScrollScale())));
             this.massText.setBoundsType(TextBoundsType.VISUAL);
             this.massText.textProperty().bind(massProperty().asString("%.2f"));
 
@@ -466,6 +468,11 @@ public class Player {
             parentPane.setLayoutY(relY - parentPane.getHeight() / 2);
 
             setRadius(relRadius);
+
+            massText.setFont(customVeraMono((int) (labelFontSize * game.camera.getScrollScale())));
+            blobName.setFont(customVeraMono((int) (labelFontSize * game.camera.getScrollScale())));
+
+            blobLabel.setSpacing(10 * game.camera.getScrollScale());
         }
 
         @Override

@@ -107,10 +107,14 @@ public class Camera {
         this.y = targetY;
     }
 
+    public double getScrollScale() {
+        return scrollScale;
+    }
+
     public void updateCamera(JSONObject camera) {
         this.x = camera.getDouble("x");
         this.y = camera.getDouble("y");
-        this.cameraScale = camera.getDouble("scale");
+        this.cameraScale = camera.getDouble("scale") * scrollScale;
     }
 
 }
