@@ -96,6 +96,8 @@ public class LandingRoot extends HBox {
             if (!serverVerification.getKey()) {
                 errorLabel.setText(serverVerification.getValue());
 
+                System.err.println("failed to connect to " + server.getAddress().getHostAddress() + ":" + server.getPort());
+
                 errorLabel.setVisible(true);
 
                 return;
