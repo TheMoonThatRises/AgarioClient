@@ -42,41 +42,76 @@ public class Stats extends VBox {
         this.serverCode.setOnMouseExited(_ -> setCursor(Cursor.DEFAULT));
 
         GameRoot.heartbeat.addRoutine("overlay", _ -> {
-            this.fps.setText(String.format("fps: %.2f", GameRoot.heartbeat.getFramerate()));
-            this.tps.setText(String.format("tps: %.2f, %.2f", NetworkHandler.getSocketTps(), NetworkHandler.getServerTps()));
-            this.ping.setText(String.format("ping: %.2fms", NetworkHandler.getPing()));
-            this.coordinate.setText(
-                    String.format(
-                            "coords: %d, %d",
-                            (int) player.getX(),
-                            (int) player.getX()
-                    )
-            );
+            if (fpsEnabled()) {
+                this.fps.setText(String.format("fps: %.2f", GameRoot.heartbeat.getFramerate()));
+            }
+
+            if (tpsEnabled()) {
+                this.tps.setText(String.format("tps: %.2f, %.2f", NetworkHandler.getSocketTps(), NetworkHandler.getServerTps()));
+            }
+
+            if (pingEnabled()) {
+                this.ping.setText(String.format("ping: %.2fms", NetworkHandler.getPing()));
+            }
+
+            if (coordinateEnabled()) {
+                this.coordinate.setText(
+                        String.format(
+                                "coords: %d, %d",
+                                (int) player.getX(),
+                                (int) player.getX()
+                        )
+                );
+            }
         });
 
-        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.fps"))) {
+        if (fpsEnabled()) {
             super.getChildren().add(fps);
         }
 
-        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.mass"))) {
+        if (massEnabled()) {
             super.getChildren().add(mass);
         }
 
-        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.tps"))) {
+        if (tpsEnabled()) {
             super.getChildren().add(tps);
         }
 
-        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.ping"))) {
+        if (pingEnabled()) {
             super.getChildren().add(ping);
         }
 
-        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.coords"))) {
+        if (coordinateEnabled()) {
             super.getChildren().add(coordinate);
         }
 
-        if (Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.servercode"))) {
+        if (serverCodeEnabled()) {
             super.getChildren().add(serverCode);
         }
+    }
+
+    private static boolean fpsEnabled() {
+        return Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.fps"));
+    }
+
+    private static boolean massEnabled() {
+        return Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.mass"));
+    }
+
+    private static boolean tpsEnabled() {
+        return Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.tps"));
+    }
+
+    private static boolean pingEnabled() {
+        return Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.ping"));
+    }
+
+    private static boolean coordinateEnabled() {
+        return Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.coords"));
+    }
+
+    private static boolean serverCodeEnabled() {
+        return Boolean.parseBoolean(Client.configs.getProperty("client.settings.stats.servercode"));
     }
 
 }
