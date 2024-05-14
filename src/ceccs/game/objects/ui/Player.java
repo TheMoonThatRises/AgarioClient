@@ -227,8 +227,8 @@ public class Player {
     public String getUsername() {
         return
                 Boolean.parseBoolean(Client.configs.getProperty("client.settings.misc.username"))
-                    ? (username.isBlank() ? "Unnamed blob" : username)
-                    : uuid.getID();
+                        ? (username.isBlank() ? "Unnamed blob" : username)
+                        : uuid.getID();
     }
 
     public ObservableMap<CustomID, PlayerBlob> getPlayerBlobs() {
