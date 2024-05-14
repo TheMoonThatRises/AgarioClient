@@ -59,7 +59,7 @@ public class Stats extends VBox {
                         String.format(
                                 "coords: %d, %d",
                                 (int) player.getX(),
-                                (int) player.getX()
+                                (int) player.getY()
                         )
                 );
             }
