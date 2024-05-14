@@ -88,6 +88,10 @@ public class Stats extends VBox {
         if (serverCodeEnabled()) {
             super.getChildren().add(serverCode);
         }
+
+        if (super.getChildren().isEmpty()) {
+            GameRoot.heartbeat.removeRoutine("overlay");
+        }
     }
 
     private static boolean fpsEnabled() {
