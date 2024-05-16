@@ -5,10 +5,8 @@ import ceccs.game.SceneHandler;
 import ceccs.game.panes.game.Game;
 import ceccs.game.roots.GameRoot;
 import ceccs.game.roots.LandingRoot;
-import ceccs.network.data.KeyPacket;
-import ceccs.network.data.MousePacket;
-import ceccs.network.data.NetworkPacket;
-import ceccs.network.data.RegisterPacket;
+import ceccs.network.data.*;
+import ceccs.network.utils.GZip;
 import ceccs.utils.InternalPathFinder;
 import javafx.util.Pair;
 import org.json.JSONObject;
@@ -19,11 +17,12 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class NetworkHandler {
+
+    final private static int maxPacketSize = 65_534;
 
     final private static int pingInterval = 2_000;
     private static JSONObject leaderboard = null;
@@ -66,7 +65,7 @@ public class NetworkHandler {
 
         this.serverThread = new Thread(() -> {
             while (true) {
-                byte[] buf = new byte[65534];
+                byte[] buf = new byte[maxPacketSize];
 
                 DatagramPacket inPacket = new DatagramPacket(buf, buf.length);
 
@@ -176,11 +175,10 @@ public class NetworkHandler {
             String received = new String(inPacket.getData());
             NetworkPacket networkPacket = NetworkPacket.fromString(received);
 
-            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op());
-
+            OP_CODES opcode = networkPacket.op();
 
             return new Pair<>(
-                    opcode.isPresent() && opcode.get() == OP_CODES.CLIENT_UNIDENTIFIED_ERROR,
+                    opcode == OP_CODES.CLIENT_UNIDENTIFIED_ERROR,
                     networkPacket.data().toString()
             );
         } catch (IOException exception) {
@@ -203,58 +201,71 @@ public class NetworkHandler {
                 lastWrite = System.nanoTime();
             }
 
-            Optional<OP_CODES> opcode = OP_CODES.fromValue(networkPacket.op());
+            OP_CODES opcode = networkPacket.op();
             JSONObject packetData = networkPacket.data();
 
-            opcode.ifPresentOrElse(op -> {
-                if (op != OP_CODES.SERVER_IDENTIFY_OK && GameRoot.registerPacket == null) {
-                    System.err.println("received improper packet from server");
+            if (opcode == OP_CODES.GZIP_PACKET) {
+                try {
+                    GZipPacket gZipPacket = GZipPacket.fromJSON(packetData);
+
+                    opcode = gZipPacket.op();
+                    packetData = new JSONObject(new String(GZip.decompress(gZipPacket.data())));
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+
+                    System.err.println("failed to decompress gzip packet: " + exception);
 
                     return;
                 }
+            }
 
-                switch (op) {
-                    case SERVER_IDENTIFY_OK -> {
-                        timeoutSleep = 1_000;
+            if (opcode != OP_CODES.SERVER_IDENTIFY_OK && GameRoot.registerPacket == null) {
+                System.err.println("received improper packet from server");
 
-                        GameRoot.registerPacket = RegisterPacket.fromJSON(packetData);
+                return;
+            }
 
-                        System.out.println("successfully connected to server");
+            switch (opcode) {
+                case SERVER_IDENTIFY_OK -> {
+                    timeoutSleep = 1_000;
 
-                        pingTimer = new Timer();
-                        pingTimer.scheduleAtFixedRate(pingTask, pingInterval, pingInterval);
-                    }
-                    case SERVER_PONG -> {
-                        ping = System.nanoTime() - lastPing;
+                    GameRoot.registerPacket = RegisterPacket.fromJSON(packetData);
 
-                        serverTps = packetData.getDouble("tps");
+                    System.out.println("successfully connected to server");
 
-                        leaderboard = packetData.getJSONObject("leaderboard");
-                    }
-                    case SERVER_GAME_STATE -> {
-                        socketTps = System.nanoTime() - socketLastTps;
-
-                        game.updateFromGameData(packetData);
-
-                        socketLastTps = System.nanoTime();
-                    }
-                    case SERVER_TERMINATE -> Client.getSceneHandler().setScene(SceneHandler.SCENES.END);
-                    case CLIENT_UNIDENTIFIED_ERROR -> {
-                        System.err.println("client unidentified error received: server restarted?");
-
-                        GameRoot.registerPacket = null;
-
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException exception) {
-                            System.err.println("failed to stall thread: " + exception);
-                        }
-
-                        identify();
-                    }
-                    default -> System.out.println("unhandled op code: " + op);
+                    pingTimer = new Timer();
+                    pingTimer.scheduleAtFixedRate(pingTask, pingInterval, pingInterval);
                 }
-            }, () -> System.err.println("received unknown opcode: " + networkPacket.op()));
+                case SERVER_PONG -> {
+                    ping = System.nanoTime() - lastPing;
+
+                    serverTps = packetData.getDouble("tps");
+
+                    leaderboard = packetData.getJSONObject("leaderboard");
+                }
+                case SERVER_GAME_STATE -> {
+                    socketTps = System.nanoTime() - socketLastTps;
+
+                    game.updateFromGameData(packetData);
+
+                    socketLastTps = System.nanoTime();
+                }
+                case SERVER_TERMINATE -> Client.getSceneHandler().setScene(SceneHandler.SCENES.END);
+                case CLIENT_UNIDENTIFIED_ERROR -> {
+                    System.err.println("client unidentified error received: server restarted?");
+
+                    GameRoot.registerPacket = null;
+
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException exception) {
+                        System.err.println("failed to stall thread: " + exception);
+                    }
+
+                    identify();
+                }
+                default -> System.out.println("unhandled op code: " + opcode);
+            }
         } catch (IOException exception) {
             System.err.println("failed to decompress packet: " + exception);
         }
@@ -290,6 +301,22 @@ public class NetworkHandler {
         NetworkPacket networkPacket = new NetworkPacket(op, data);
 
         byte[] byteData = networkPacket.toJSON().toString().getBytes();
+
+        if (byteData.length > maxPacketSize - 100) {
+            try {
+                GZipPacket gZipPacket = new GZipPacket(op, data);
+
+                networkPacket = new NetworkPacket(OP_CODES.GZIP_PACKET, gZipPacket.toJSON());
+
+                byteData = networkPacket.toJSON().toString().getBytes();
+            } catch (IOException exception) {
+                exception.printStackTrace();
+
+                System.err.println("failed to compress packet: " + exception);
+
+                return;
+            }
+        }
 
         DatagramPacket packet = new DatagramPacket(byteData, byteData.length, LandingRoot.getServer());
 
