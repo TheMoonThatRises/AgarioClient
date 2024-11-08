@@ -2,8 +2,8 @@
 
 A Java client-implementation clone of the popular 2010's online game [Agar.io](agar.io).
 
-<img alt="Image of AgarioClient Landing Page" src="./resources/client_landing.png" width="300px">
-<img alt="Image of AgarioClient Game Page" src="./resources/client_play.png" width="300px">
+![Image of AgarioClient Landing Page](./resources/client_landing.png)
+![Image of AgarioClient Game Page](./resources/client_play.png)
 
 See [AgarioServer](https://github.com/TheMoonThatRises/AgarioServer) for the server companion of this client.
 
