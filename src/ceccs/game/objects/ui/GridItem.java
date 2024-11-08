@@ -33,10 +33,10 @@ public class GridItem extends Line {
 
         setVisible(false);
 
-        boolean qualityGraphics = Boolean.parseBoolean(Client.configs.getProperty("client.settings.performance.graphics.quality", "false"));
+        boolean useCache = Boolean.parseBoolean(Client.configs.getProperty("client.settings.performance.graphics.cache", "false"));
 
-        setCache(qualityGraphics);
-        setCacheHint(qualityGraphics ? CacheHint.QUALITY : CacheHint.SPEED);
+        setCache(useCache);
+        setCacheHint(useCache ? CacheHint.QUALITY : CacheHint.SPEED);
     }
 
     public void animationTick() {

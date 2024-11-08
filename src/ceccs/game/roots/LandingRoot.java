@@ -11,6 +11,7 @@ import ceccs.utils.InternalException;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -110,11 +111,13 @@ public class LandingRoot extends HBox {
             Client.getSceneHandler().setScene(SceneHandler.SCENES.GAME);
         });
 
-        SettingsCheckBox qualityGraphics = new SettingsCheckBox(
-                "Quality Graphics",
-                "client.settings.performance.graphics.quality",
-                "false"
+        SettingsCheckBox cacheGraphics = new SettingsCheckBox(
+                "Cache graphics",
+                "client.settings.performance.graphics.cache",
+                "true"
         );
+
+        MenuButton cacheHints = new MenuButton("Cache Hint");
 
         SettingsCheckBox fpsSetting = new SettingsCheckBox(
                 "Show FPS",
@@ -177,7 +180,7 @@ public class LandingRoot extends HBox {
                 new HBox(5, serverCodeLabel, serverCode),
                 new HBox(5, usernameLabel, usernameField),
                 graphicsTitle,
-                new VBox(5, qualityGraphics),
+                new VBox(5, cacheGraphics, cacheHints),
                 statsTitle,
                 new HBox(5,
                         new VBox(5, fpsSetting, massSetting, tpsSetting),
