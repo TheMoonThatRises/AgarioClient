@@ -8,6 +8,7 @@ import ceccs.game.roots.LandingRoot;
 import ceccs.network.data.*;
 import ceccs.network.utils.GZip;
 import ceccs.utils.InternalPathFinder;
+import javafx.application.Platform;
 import javafx.util.Pair;
 import org.json.JSONObject;
 
@@ -250,7 +251,11 @@ public class NetworkHandler {
 
                     socketLastTps = System.nanoTime();
                 }
-                case SERVER_TERMINATE -> Client.getSceneHandler().setScene(SceneHandler.SCENES.END);
+                case SERVER_TERMINATE -> {
+                    stop();
+
+                    Platform.runLater(() -> Client.getSceneHandler().setScene(SceneHandler.SCENES.END));
+                }
                 case CLIENT_UNIDENTIFIED_ERROR -> {
                     System.err.println("client unidentified error received: server restarted?");
 
