@@ -1,11 +1,9 @@
 <component name="ArtifactManager">
-  <artifact name="AgarioClient:jar">
+  <artifact type="jar" name="AgarioClient:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/AgarioClient_jar</output-path>
-    <root id="root">
-      <element id="archive" name="AgarioClient.jar">
-        <element id="module-output" name="AgarioClient" />
-      </element>
-      <element id="library" level="project" name="json" />
+    <root id="archive" name="AgarioClient.jar">
+      <element id="module-output" name="AgarioClient" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/json-20240205.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
